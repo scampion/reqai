@@ -55,17 +55,18 @@ class GoalsModel:
         return f"GoalsModel(goals={self.goals})"
 
 class BusinessProcess:
-    def __init__(self, identifier, name, description, owner_id, department, inputs):
+    def __init__(self, identifier, name, description, owner_id, department, inputs, outputs):
         self.identifier = identifier
         self.name = name
         self.description = description
         self.owner_id = owner_id
         self.department = department
         self.inputs = inputs
+        self.outputs = outputs
 
     def __repr__(self):
         return (f"BusinessProcess(identifier={self.identifier}, name={self.name}, description={self.description}, "
-                f"owner_id={self.owner_id}, department={self.department}, inputs={self.inputs})")
+                f"owner_id={self.owner_id}, department={self.department}, inputs={self.inputs}, outputs={self.outputs})")
 
 class BusinessProcessesModel:
     def __init__(self):
