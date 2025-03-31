@@ -65,7 +65,7 @@ word-break: break-all; margin: 0; }
     <script type="module">
         // This import is now handled within app.js where it's used.
         // If needed globally, keep it here, but modular JS usually imports within the module.
-        // import { pipeline } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.4.1';
+        import { pipeline } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.4.1';
         // console.log("Transformers.js loaded via module script in head (if uncommented).");
     </script>
     <nav>
@@ -84,6 +84,6 @@ word-break: break-all; margin: 0; }
         </div>
     </main>
 
-    <script src="app.js"></script>
+    <script type="module" src="app.js"></script>
 </body>
 </html>
