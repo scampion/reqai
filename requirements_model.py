@@ -26,16 +26,41 @@ class StakeholdersModel:
     def __repr__(self):
         return f"StakeholdersModel(stakeholders={self.stakeholders})"
 
+class Goal:
+    def __init__(self, identifier, description):
+        self.identifier = identifier
+        self.description = description
+
+    def __repr__(self):
+        return f"Goal(identifier={self.identifier}, description={self.description})"
+
+class GoalsModel:
+    def __init__(self):
+        self.goals = []
+
+    def add_goal(self, goal):
+        self.goals.append(goal)
+
+    def get_goal(self, identifier):
+        for goal in self.goals:
+            if goal.identifier == identifier:
+                return goal
+        return None
+
+    def __repr__(self):
+        return f"GoalsModel(goals={self.goals})"
+
 class Requirement:
-    def __init__(self, identifier, description, priority, stakeholder_ids):
+    def __init__(self, identifier, description, priority, stakeholder_ids, goal_ids):
         self.identifier = identifier
         self.description = description
         self.priority = priority
         self.stakeholder_ids = stakeholder_ids
+        self.goal_ids = goal_ids
 
     def __repr__(self):
         return (f"Requirement(identifier={self.identifier}, description={self.description}, "
-                f"priority={self.priority}, stakeholder_ids={self.stakeholder_ids})")
+                f"priority={self.priority}, stakeholder_ids={self.stakeholder_ids}, goal_ids={self.goal_ids})")
 
 class RequirementsModel:
     def __init__(self):
