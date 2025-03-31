@@ -88,6 +88,7 @@ Handler = MyHttpRequestHandler
 with socketserver.TCPServer(("", PORT), Handler) as httpd:
     print(f"Serving at port {PORT}")
     httpd.serve_forever()
+    
     import webbrowser
     url = "http://localhost:" + str(PORT)
     webbrowser.open(url, new=0, autoraise=True)
