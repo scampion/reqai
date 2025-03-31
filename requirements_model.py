@@ -27,15 +27,16 @@ class StakeholdersModel:
         return f"StakeholdersModel(stakeholders={self.stakeholders})"
 
 class Goal:
-    def __init__(self, identifier, description, priority, stakeholder_ids):
+    def __init__(self, identifier, description, priority, stakeholder_ids, deadline):
         self.identifier = identifier
         self.description = description
         self.priority = priority
         self.stakeholder_ids = stakeholder_ids
+        self.deadline = deadline
 
     def __repr__(self):
         return (f"Goal(identifier={self.identifier}, description={self.description}, priority={self.priority}, "
-                f"stakeholder_ids={self.stakeholder_ids})")
+                f"stakeholder_ids={self.stakeholder_ids}, deadline={self.deadline})")
 
 class GoalsModel:
     def __init__(self):
