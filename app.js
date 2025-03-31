@@ -490,7 +490,54 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- Search Functionality ---
+    // --- Text Embedding and Search Functionality ---
+    let featureExtractor = null;
+    let requirementsIndex = null;
+
+    async function ensureExtractorInitializedAndIndexRequirements(requirements) {
+        if (!featureExtractor) {
+            try {
+                showMessage('Initializing text embedding model...');
+                // @ts-ignore - Transformers.js is loaded via CDN
+                featureExtractor = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
+                showMessage('Text embedding model ready');
+            } catch (error) {
+                console.error('Failed to initialize feature extractor:', error);
+                showMessage('Failed to initialize search capabilities', true);
+                return false;
+            }
+        }
+
+        if (requirements && requirements.length > 0) {
+            try {
+                showMessage('Indexing requirements for search...');
+                requirementsIndex = {};
+                
+                // Create embeddings for all requirement descriptions
+                const texts = requirements.map(req => req.description || '');
+                const embeddings = await featureExtractor(texts, { pooling: 'mean', normalize: true });
+                
+                // Store embeddings with their requirement IDs
+                requirements.forEach((req, i) => {
+                    if (req.id && req.description) {
+                        requirementsIndex[req.id] = {
+                            embedding: embeddings[i].data,
+                            requirement: req
+                        };
+                    }
+                });
+                
+                showMessage('Requirements indexed for search');
+                return true;
+            } catch (error) {
+                console.error('Failed to index requirements:', error);
+                showMessage('Failed to index requirements for search', true);
+                return false;
+            }
+        }
+        return false;
+    }
+
     async function performSearch() {
         const searchInput = document.getElementById('req-search-input');
         const searchTerm = searchInput?.value.trim();
@@ -503,7 +550,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             searchStatus.textContent = 'Searching...';
-            const results = await fetchAPI(`/entities/requirements/search?q=${encodeURIComponent(searchTerm)}`);
+            // First ensure we have embeddings for all requirements
+            const allRequirements = currentDataCache['requirements'] || await fetchAPI('/entities/requirements');
+            await ensureExtractorInitializedAndIndexRequirements(allRequirements);
+
+            // Generate embedding for search query
+            const queryEmbedding = await featureExtractor(searchTerm, { pooling: 'mean', normalize: true });
+            
+            // Calculate cosine similarity between query and all requirements
+            const results = [];
+            for (const reqId in requirementsIndex) {
+                const { embedding, requirement } = requirementsIndex[reqId];
+                const similarity = cosineSimilarity(queryEmbedding.data, embedding);
+                
+                if (similarity > 0.3) { // Only include results with reasonable similarity
+                    results.push({
+                        ...requirement,
+                        similarityScore: similarity
+                    });
+                }
+            }
+
+            // Sort by similarity score (highest first)
+            results.sort((a, b) => b.similarityScore - a.similarityScore);
             
             if (results && results.length > 0) {
                 renderEntityList('requirements', results);
@@ -517,6 +586,24 @@ document.addEventListener('DOMContentLoaded', () => {
             searchStatus.textContent = 'Search failed - see console';
             showMessage(`Search error: ${error.message}`, true);
         }
+    }
+
+    // Utility function to calculate cosine similarity between vectors
+    function cosineSimilarity(a, b) {
+        let dotProduct = 0;
+        let magnitudeA = 0;
+        let magnitudeB = 0;
+        
+        for (let i = 0; i < a.length; i++) {
+            dotProduct += a[i] * b[i];
+            magnitudeA += a[i] * a[i];
+            magnitudeB += b[i] * b[i];
+        }
+        
+        magnitudeA = Math.sqrt(magnitudeA);
+        magnitudeB = Math.sqrt(magnitudeB);
+        
+        return magnitudeA && magnitudeB ? dotProduct / (magnitudeA * magnitudeB) : 0;
     }
 
     // Expose functions needed by inline HTML event handlers (onclick)
