@@ -35,13 +35,6 @@
       "priority": "medium",
       "stakeholder_id": "STK002",
       "deadline": "2024-06-30"
-    },
-    {
-      "description": "sqdq",
-      "priority": "qsdqs",
-      "stakeholder_id": "qdq",
-      "deadline": "qdsq",
-      "id": "GOAL003"
     }
   ],
   "business_processes": [
@@ -92,7 +85,7 @@
       "related_process_id": "BP002"
     },
     {
-      "description": "qdsq",
+      "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,",
       "type": "",
       "priority": "",
       "source": "",
@@ -184,7 +177,8 @@
       "description": "Measure of customer satisfaction",
       "target_value": "90%",
       "related_goals": [
-        "GOAL001"
+        "GOAL001",
+        "TEST"
       ]
     },
     {

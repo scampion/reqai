@@ -52,6 +52,12 @@ word-break: break-all; margin: 0; }
         #messages.success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
         #messages.error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
         #messages:empty { display: none; } /* Hide if empty */
+        .download-button {
+            display: inline-block; padding: 8px 12px; margin-left: 20px;
+            background-color: #17a2b8; color: white; border: none;
+            border-radius: 4px; text-decoration: none; cursor: pointer;
+            vertical-align: middle; /* Align with title */
+         }
     </style>
 </head>
 <body>
@@ -63,7 +69,9 @@ word-break: break-all; margin: 0; }
     </nav>
 
     <main>
-        <h1>Requirements Manager</h1>
+        <h1>Requirements Manager
+             <button id="download-rtf-button" class="download-button">Download All (RTF)</button>
+        </h1>
         <div id="messages"></div> <div id="content">
             <p>Select an entity type from the navigation menu to begin.</p>
         </div>
@@ -72,4 +80,3 @@ word-break: break-all; margin: 0; }
     <script src="app.js"></script>
 </body>
 </html>
-
