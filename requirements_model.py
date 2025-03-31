@@ -85,13 +85,14 @@ class BusinessProcessesModel:
         return f"BusinessProcessesModel(business_processes={self.business_processes})"
 
 class System:
-    def __init__(self, identifier, name, description):
+    def __init__(self, identifier, name, description, owner_id):
         self.identifier = identifier
         self.name = name
         self.description = description
+        self.owner_id = owner_id
 
     def __repr__(self):
-        return f"System(identifier={self.identifier}, name={self.name}, description={self.description})"
+        return f"System(identifier={self.identifier}, name={self.name}, description={self.description}, owner_id={self.owner_id})"
 
 class SystemsModel:
     def __init__(self):
