@@ -4,24 +4,149 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>REST API Client</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
 </head>
 <body>
     <h1>REST API Client</h1>
     <button onclick="fetchData()">Fetch Data</button>
+    <button onclick="toggleAddForm()">Add Requirement</button>
     <div id="data-container"></div>
+    <div id="add-form-container" class="hidden">
+        <h2>Add Requirement</h2>
+        <form id="add-form">
+            <label for="id">ID:</label><br>
+            <input type="text" id="id" name="id"><br>
+            <label for="description">Description:</label><br>
+            <input type="text" id="description" name="description"><br>
+            <label for="type">Type:</label><br>
+            <input type="text" id="type" name="type"><br>
+            <label for="priority">Priority:</label><br>
+            <input type="text" id="priority" name="priority"><br>
+            <label for="source">Source:</label><br>
+            <input type="text" id="source" name="source"><br>
+            <label for="related_goal_id">Related Goal ID:</label><br>
+            <input type="text" id="related_goal_id" name="related_goal_id"><br>
+            <label for="related_process_id">Related Process ID:</label><br>
+            <input type="text" id="related_process_id" name="related_process_id"><br>
+            <button type="button" onclick="addRequirement()">Add</button>
+            <button type="button" onclick="toggleAddForm()">Cancel</button>
+        </form>
+    </div>
 
     <script>
         async function fetchData() {
             try {
                 const response = await fetch('/api/data');
                 const data = await response.json();
-                document.getElementById('data-container').innerText = JSON.stringify(data, null, 2);
+                displayData(data);
             } catch (error) {
                 console.error('Error fetching data:', error);
+            }
+        }
+
+        function displayData(data) {
+            const container = document.getElementById('data-container');
+            container.innerHTML = '';
+            const table = document.createElement('table');
+            const header = table.insertRow();
+            const headers = ['ID', 'Description', 'Type', 'Priority', 'Source', 'Related Goal ID', 'Related Process ID', 'Actions'];
+            headers.forEach(text => {
+                const th = document.createElement('th');
+                th.appendChild(document.createTextNode(text));
+                header.appendChild(th);
+            });
+            data.data.forEach(requirement => {
+                const row = table.insertRow();
+                Object.values(requirement).forEach(text => {
+                    const cell = row.insertCell();
+                    cell.appendChild(document.createTextNode(text));
+                });
+                const actionsCell = row.insertCell();
+                const editButton = document.createElement('button');
+                editButton.appendChild(document.createTextNode('Edit'));
+                editButton.onclick = () => editRequirement(requirement);
+                const deleteButton = document.createElement('button');
+                deleteButton.appendChild(document.createTextNode('Delete'));
+                deleteButton.onclick = () => deleteRequirement(requirement.id);
+                actionsCell.appendChild(editButton);
+                actionsCell.appendChild(deleteButton);
+            });
+            container.appendChild(table);
+        }
+
+        function toggleAddForm() {
+            const formContainer = document.getElementById('add-form-container');
+            formContainer.classList.toggle('hidden');
+        }
+
+        async function addRequirement() {
+            const form = document.getElementById('add-form');
+            const formData = new FormData(form);
+            const requirement = Object.fromEntries(formData.entries());
+            try {
+                const response = await fetch('/api/data', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requirement)
+                });
+                const data = await response.json();
+                displayData(data);
+                toggleAddForm();
+            } catch (error) {
+                console.error('Error adding requirement:', error);
+            }
+        }
+
+        async function editRequirement(requirement) {
+            const newDescription = prompt('Edit description:', requirement.description);
+            if (newDescription) {
+                requirement.description = newDescription;
+                try {
+                    const response = await fetch('/api/data', {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(requirement)
+                    });
+                    const data = await response.json();
+                    displayData(data);
+                } catch (error) {
+                    console.error('Error editing requirement:', error);
+                }
+            }
+        }
+
+        async function deleteRequirement(id) {
+            if (confirm('Are you sure you want to delete this requirement?')) {
+                try {
+                    const response = await fetch(`/api/data?id=${id}`, {
+                        method: 'DELETE'
+                    });
+                    const data = await response.json();
+                    displayData(data);
+                } catch (error) {
+                    console.error('Error deleting requirement:', error);
+                }
             }
         }
     </script>
 </body>
 </html>
-
-
