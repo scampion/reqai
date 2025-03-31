@@ -245,7 +245,7 @@
             try {
                 const response = await fetch('/api/data');
                 const data = await response.json();
-                displayData(data, entity);
+                displayData(data[entity], entity);
             } catch (error) {
                 console.error('Error fetching data:', error);
             }
@@ -256,7 +256,7 @@
             container.innerHTML = '';
             const table = document.createElement('table');
             const header = table.insertRow();
-            const headers = Object.keys(data.data[0]);
+            const headers = Object.keys(data[0]);
             headers.forEach(text => {
                 const th = document.createElement('th');
                 th.appendChild(document.createTextNode(text));
@@ -265,7 +265,7 @@
             const actionsHeader = document.createElement('th');
             actionsHeader.appendChild(document.createTextNode('Actions'));
             header.appendChild(actionsHeader);
-            data.data.forEach(item => {
+            data.forEach(item => {
                 const row = table.insertRow();
                 Object.values(item).forEach(text => {
                     const cell = row.insertCell();
@@ -302,7 +302,7 @@
                     body: JSON.stringify(requirement)
                 });
                 const data = await response.json();
-                displayData(data, 'requirements');
+                displayData(data['requirements'], 'requirements');
                 toggleAddForm('requirements');
             } catch (error) {
                 console.error('Error adding requirement:', error);
@@ -322,7 +322,7 @@
                     body: JSON.stringify(stakeholder)
                 });
                 const data = await response.json();
-                displayData(data, 'stakeholders');
+                displayData(data['stakeholders'], 'stakeholders');
                 toggleAddForm('stakeholders');
             } catch (error) {
                 console.error('Error adding stakeholder:', error);
@@ -342,7 +342,7 @@
                     body: JSON.stringify(goalObjective)
                 });
                 const data = await response.json();
-                displayData(data, 'goals_and_objectives');
+                displayData(data['goals_and_objectives'], 'goals_and_objectives');
                 toggleAddForm('goals_and_objectives');
             } catch (error) {
                 console.error('Error adding goal/objective:', error);
@@ -362,7 +362,7 @@
                     body: JSON.stringify(businessProcess)
                 });
                 const data = await response.json();
-                displayData(data, 'business_processes');
+                displayData(data['business_processes'], 'business_processes');
                 toggleAddForm('business_processes');
             } catch (error) {
                 console.error('Error adding business process:', error);
@@ -382,7 +382,7 @@
                     body: JSON.stringify(systemApplication)
                 });
                 const data = await response.json();
-                displayData(data, 'systems_and_applications');
+                displayData(data['systems_and_applications'], 'systems_and_applications');
                 toggleAddForm('systems_and_applications');
             } catch (error) {
                 console.error('Error adding system/application:', error);
@@ -402,7 +402,7 @@
                     body: JSON.stringify(dataEntity)
                 });
                 const data = await response.json();
-                displayData(data, 'data_entities');
+                displayData(data['data_entities'], 'data_entities');
                 toggleAddForm('data_entities');
             } catch (error) {
                 console.error('Error adding data entity:', error);
@@ -422,7 +422,7 @@
                     body: JSON.stringify(metricKpi)
                 });
                 const data = await response.json();
-                displayData(data, 'metrics_and_kpis');
+                displayData(data['metrics_and_kpis'], 'metrics_and_kpis');
                 toggleAddForm('metrics_and_kpis');
             } catch (error) {
                 console.error('Error adding metric/KPI:', error);
@@ -442,7 +442,7 @@
                         body: JSON.stringify(item)
                     });
                     const data = await response.json();
-                    displayData(data, entity);
+                    displayData(data[entity], entity);
                 } catch (error) {
                     console.error('Error editing item:', error);
                 }
@@ -456,7 +456,7 @@
                         method: 'DELETE'
                     });
                     const data = await response.json();
-                    displayData(data, entity);
+                    displayData(data[entity], entity);
                 } catch (error) {
                     console.error('Error deleting item:', error);
                 }
