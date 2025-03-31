@@ -23,6 +23,65 @@ class MyHttpRequestHandler(http.server.SimpleHTTPRequestHandler):
             return
         return http.server.SimpleHTTPRequestHandler.do_GET(self)
 
+    def do_POST(self):
+        if self.path == '/api/data':
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length)
+            requirement = json.loads(post_data)
+            with open('data.json', 'r+') as file:
+                data = json.load(file)
+                data['requirements'].append(requirement)
+                file.seek(0)
+                json.dump(data, file, indent=4)
+                file.truncate()
+            self.send_response(201)
+            self.end_headers()
+            response = {
+                'message': 'Requirement added successfully!',
+                'data': data['requirements']
+            }
+            self.wfile.write(json.dumps(response).encode('utf-8'))
+
+    def do_PUT(self):
+        if self.path == '/api/data':
+            content_length = int(self.headers['Content-Length'])
+            put_data = self.rfile.read(content_length)
+            requirement = json.loads(put_data)
+            with open('data.json', 'r+') as file:
+                data = json.load(file)
+                for i, req in enumerate(data['requirements']):
+                    if req['id'] == requirement['id']:
+                        data['requirements'][i] = requirement
+                        break
+                file.seek(0)
+                json.dump(data, file, indent=4)
+                file.truncate()
+            self.send_response(200)
+            self.end_headers()
+            response = {
+                'message': 'Requirement updated successfully!',
+                'data': data['requirements']
+            }
+            self.wfile.write(json.dumps(response).encode('utf-8'))
+
+    def do_DELETE(self):
+        if self.path.startswith('/api/data?'):
+            query_components = parse_qs(urlparse(self.path).query)
+            requirement_id = query_components['id'][0]
+            with open('data.json', 'r+') as file:
+                data = json.load(file)
+                data['requirements'] = [req for req in data['requirements'] if req['id'] != requirement_id]
+                file.seek(0)
+                json.dump(data, file, indent=4)
+                file.truncate()
+            self.send_response(200)
+            self.end_headers()
+            response = {
+                'message': 'Requirement deleted successfully!',
+                'data': data['requirements']
+            }
+            self.wfile.write(json.dumps(response).encode('utf-8'))
+
 Handler = MyHttpRequestHandler
 
 with socketserver.TCPServer(("", PORT), Handler) as httpd:
