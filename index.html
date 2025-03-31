@@ -212,7 +212,11 @@
             try {
                 const response = await fetch('/api/data');
                 const data = await response.json();
-                displayData(data[entity], entity);
+                if (data && data[entity] && data[entity].length > 0) {
+                    displayData(data[entity], entity);
+                } else {
+                    console.error('No data available for entity:', entity);
+                }
             } catch (error) {
                 console.error('Error fetching data:', error);
             }
@@ -223,31 +227,38 @@
             container.innerHTML = '';
             const table = document.createElement('table');
             const header = table.insertRow();
-            const headers = Object.keys(data[0]);
-            headers.forEach(text => {
-                const th = document.createElement('th');
-                th.appendChild(document.createTextNode(text));
-                header.appendChild(th);
-            });
-            const actionsHeader = document.createElement('th');
-            actionsHeader.appendChild(document.createTextNode('Actions'));
-            header.appendChild(actionsHeader);
-            data.forEach(item => {
-                const row = table.insertRow();
-                Object.values(item).forEach(text => {
-                    const cell = row.insertCell();
-                    cell.appendChild(document.createTextNode(text));
+            if (data.length > 0) {
+                const headers = Object.keys(data[0]);
+                headers.forEach(text => {
+                    const th = document.createElement('th');
+                    th.appendChild(document.createTextNode(text));
+                    header.appendChild(th);
                 });
-                const actionsCell = row.insertCell();
-                const editButton = document.createElement('button');
-                editButton.appendChild(document.createTextNode('Edit'));
-                editButton.onclick = () => editItem(entity, item);
-                const deleteButton = document.createElement('button');
-                deleteButton.appendChild(document.createTextNode('Delete'));
-                deleteButton.onclick = () => deleteItem(entity, item.id);
-                actionsCell.appendChild(editButton);
-                actionsCell.appendChild(deleteButton);
-            });
+                const actionsHeader = document.createElement('th');
+                actionsHeader.appendChild(document.createTextNode('Actions'));
+                header.appendChild(actionsHeader);
+                data.forEach(item => {
+                    const row = table.insertRow();
+                    Object.values(item).forEach(text => {
+                        const cell = row.insertCell();
+                        cell.appendChild(document.createTextNode(text));
+                    });
+                    const actionsCell = row.insertCell();
+                    const editButton = document.createElement('button');
+                    editButton.appendChild(document.createTextNode('Edit'));
+                    editButton.onclick = () => editItem(entity, item);
+                    const deleteButton = document.createElement('button');
+                    deleteButton.appendChild(document.createTextNode('Delete'));
+                    deleteButton.onclick = () => deleteItem(entity, item.id);
+                    actionsCell.appendChild(editButton);
+                    actionsCell.appendChild(deleteButton);
+                });
+            } else {
+                const noDataRow = table.insertRow();
+                const noDataCell = noDataRow.insertCell();
+                noDataCell.colSpan = headers.length + 1;
+                noDataCell.appendChild(document.createTextNode('No data available'));
+            }
             container.appendChild(table);
         }
 
