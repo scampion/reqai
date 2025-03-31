@@ -1,6 +1,7 @@
 import http.server
 import json
 import socketserver
+from urllib.parse import parse_qs, urlparse
 
 PORT = 8000
 
