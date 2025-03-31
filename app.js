@@ -421,29 +421,37 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function loadEntityList(entityType) {
-         showMessage('Loading data...');
-         try {
-             // Check cache first
-             if (!currentDataCache[entityType]) {
-                 currentDataCache[entityType] = await fetchAPI(`/entities/${entityType}`);
-             }
-             const items = currentDataCache[entityType] || []; // Use cache or fallback to empty
+        showMessage('Loading data...');
+        try {
+            // Check cache first
+            if (!currentDataCache[entityType]) {
+                const data = await fetchAPI(`/entities/${entityType}`);
+                if (!data) {
+                    throw new Error(`No data returned for ${entityType}`);
+                }
+                currentDataCache[entityType] = data;
+            }
+            
+            const items = currentDataCache[entityType];
+            if (!items) {
+                throw new Error(`No items found for ${entityType}`);
+            }
 
-             // --- MODIFIED: Trigger indexing for requirements, render list ---
-             if (entityType === 'requirements') {
-                 // Render the list first (including search UI), then index in background
-                 renderEntityList(entityType, items);
-                 // ensureExtractorInitializedAndIndexRequirements is now called *inside* renderEntityList
-                 // to make sure the UI elements exist first.
-             } else {
-                 // For other types, just render
-                 renderEntityList(entityType, items);
-             }
-             showMessage(''); // Clear loading message
-         } catch (error) {
-              // Error message shown by fetchAPI
-              contentArea.innerHTML = `<p style="color: red;">Failed to load data for ${entityType}.</p>`;
-         }
+            // Render the list
+            renderEntityList(entityType, items);
+            showMessage(''); // Clear loading message
+
+        } catch (error) {
+            console.error(`Error loading ${entityType}:`, error);
+            showMessage(`Failed to load ${entityType}: ${error.message}`, true);
+            contentArea.innerHTML = `
+                <div style="color: red; margin: 20px;">
+                    <p>Failed to load ${entityType.replace(/_/g, ' ')} data.</p>
+                    <p>Error: ${error.message}</p>
+                    <button onclick="app.loadEntityList('${entityType}')">Retry</button>
+                </div>
+            `;
+        }
     }
 
 
