@@ -36,9 +36,10 @@ class MyHttpRequestHandler(http.server.SimpleHTTPRequestHandler):
             with open('data.json', 'r+') as file:
                 data = json.load(file)
                 if 'id' in item and 'description' in item:
-                    if not item['id'].startswith('REQ'):
-                        item['id'] = 'REQ' + item['id']
-                    data['requirements'].append(item)
+                    if item['id'].startswith('REQ'):
+                        if not item['id'].startswith('REQ'):
+                            item['id'] = 'REQ' + item['id']
+                        data['requirements'].append(item)
                     elif item['id'].startswith('STK'):
                         data['stakeholders'].append(item)
                     elif item['id'].startswith('GOAL'):
