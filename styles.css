@@ -1,21 +1,23 @@
 /* styles.css */
+@import url('https://db.onlinewebfonts.com/c/12ff62164c9778917bddb93c6379cf47?family=Aeonik+Pro+Regular');
+
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
+    font-family: 'Aeonik Pro Regular', Arial, sans-serif;
+    background-color: #353d3e;
     margin: 0;
     padding: 0;
-    color: #333;
+    color: #ffffff;
 }
 
 h1 {
     text-align: center;
     margin-top: 20px;
-    color: #4CAF50;
+    color: #ffffff;
 }
 
 button {
-    background-color: #4CAF50;
-    color: white;
+    background-color: #ffffff;
+    color: #353d3e;
     border: none;
     padding: 10px 20px;
     margin: 10px;
@@ -25,15 +27,16 @@ button {
 }
 
 button:hover {
-    background-color: #45a049;
+    background-color: #ddd;
 }
 
 table {
     width: 100%;
     border-collapse: collapse;
     margin: 20px 0;
-    background-color: white;
+    background-color: #ffffff;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    color: #353d3e;
 }
 
 table, th, td {
@@ -46,8 +49,8 @@ th, td {
 }
 
 th {
-    background-color: #4CAF50;
-    color: white;
+    background-color: #353d3e;
+    color: #ffffff;
 }
 
 .hidden {
@@ -55,19 +58,21 @@ th {
 }
 
 #add-form-container {
-    background-color: white;
+    background-color: #ffffff;
     padding: 20px;
     border-radius: 5px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     margin: 20px auto;
     width: 80%;
     max-width: 600px;
+    color: #353d3e;
 }
 
 #add-form label {
     display: block;
     margin: 10px 0 5px;
     font-weight: bold;
+    color: #353d3e;
 }
 
 #add-form input {
@@ -76,8 +81,44 @@ th {
     margin-bottom: 10px;
     border: 1px solid #ccc;
     border-radius: 5px;
+    color: #353d3e;
 }
 
 #add-form button {
     margin-top: 10px;
+}
+
+.tab {
+    overflow: hidden;
+    border: 1px solid #ccc;
+    background-color: #444;
+}
+
+.tab button {
+    background-color: inherit;
+    float: left;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 14px 16px;
+    transition: 0.3s;
+    font-size: 17px;
+    color: #ffffff;
+}
+
+.tab button:hover {
+    background-color: #555;
+}
+
+.tab button.active {
+    background-color: #666;
+}
+
+.tabcontent {
+    display: none;
+    padding: 6px 12px;
+    border: 1px solid #ccc;
+    border-top: none;
+    background-color: #353d3e;
+    color: #ffffff;
 }
