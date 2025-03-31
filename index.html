@@ -5,82 +5,292 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>REST API Client</title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+        .tab {
+            overflow: hidden;
+            border: 1px solid #ccc;
+            background-color: #f1f1f1;
+        }
+
+        .tab button {
+            background-color: inherit;
+            float: left;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 14px 16px;
+            transition: 0.3s;
+            font-size: 17px;
+        }
+
+        .tab button:hover {
+            background-color: #ddd;
+        }
+
+        .tab button.active {
+            background-color: #ccc;
+        }
+
+        .tabcontent {
+            display: none;
+            padding: 6px 12px;
+            border: 1px solid #ccc;
+            border-top: none;
+        }
+    </style>
 </head>
 <body>
     <h1>REST API Client</h1>
-    <button onclick="fetchData()">Fetch Data</button>
-    <button onclick="toggleAddForm()">Add Requirement</button>
-    <div id="data-container"></div>
-    <div id="add-form-container" class="hidden">
-        <h2>Add Requirement</h2>
-        <form id="add-form">
-            <label for="id">ID:</label>
-            <input type="text" id="id" name="id">
-            <label for="description">Description:</label>
-            <input type="text" id="description" name="description">
-            <label for="type">Type:</label>
-            <input type="text" id="type" name="type">
-            <label for="priority">Priority:</label>
-            <input type="text" id="priority" name="priority">
-            <label for="source">Source:</label>
-            <input type="text" id="source" name="source">
-            <label for="related_goal_id">Related Goal ID:</label>
-            <input type="text" id="related_goal_id" name="related_goal_id">
-            <label for="related_process_id">Related Process ID:</label>
-            <input type="text" id="related_process_id" name="related_process_id">
-            <button type="button" onclick="addRequirement()">Add</button>
-            <button type="button" onclick="toggleAddForm()">Cancel</button>
-        </form>
+    <div class="tab">
+        <button class="tablinks" onclick="openTab(event, 'Requirements')">Requirements</button>
+        <button class="tablinks" onclick="openTab(event, 'Stakeholders')">Stakeholders</button>
+        <button class="tablinks" onclick="openTab(event, 'GoalsAndObjectives')">Goals and Objectives</button>
+        <button class="tablinks" onclick="openTab(event, 'BusinessProcesses')">Business Processes</button>
+        <button class="tablinks" onclick="openTab(event, 'SystemsAndApplications')">Systems and Applications</button>
+        <button class="tablinks" onclick="openTab(event, 'DataEntities')">Data Entities</button>
+        <button class="tablinks" onclick="openTab(event, 'MetricsAndKpis')">Metrics and KPIs</button>
+    </div>
+
+    <div id="Requirements" class="tabcontent">
+        <button onclick="fetchData('requirements')">Fetch Data</button>
+        <button onclick="toggleAddForm('requirements')">Add Requirement</button>
+        <div id="requirements-container"></div>
+        <div id="add-requirement-form-container" class="hidden">
+            <h2>Add Requirement</h2>
+            <form id="add-requirement-form">
+                <label for="requirement-id">ID:</label>
+                <input type="text" id="requirement-id" name="id">
+                <label for="requirement-description">Description:</label>
+                <input type="text" id="requirement-description" name="description">
+                <label for="requirement-type">Type:</label>
+                <input type="text" id="requirement-type" name="type">
+                <label for="requirement-priority">Priority:</label>
+                <input type="text" id="requirement-priority" name="priority">
+                <label for="requirement-source">Source:</label>
+                <input type="text" id="requirement-source" name="source">
+                <label for="requirement-related_goal_id">Related Goal ID:</label>
+                <input type="text" id="requirement-related_goal_id" name="related_goal_id">
+                <label for="requirement-related_process_id">Related Process ID:</label>
+                <input type="text" id="requirement-related_process_id" name="related_process_id">
+                <button type="button" onclick="addRequirement()">Add</button>
+                <button type="button" onclick="toggleAddForm('requirements')">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="Stakeholders" class="tabcontent">
+        <button onclick="fetchData('stakeholders')">Fetch Data</button>
+        <button onclick="toggleAddForm('stakeholders')">Add Stakeholder</button>
+        <div id="stakeholders-container"></div>
+        <div id="add-stakeholder-form-container" class="hidden">
+            <h2>Add Stakeholder</h2>
+            <form id="add-stakeholder-form">
+                <label for="stakeholder-id">ID:</label>
+                <input type="text" id="stakeholder-id" name="id">
+                <label for="stakeholder-name">Name:</label>
+                <input type="text" id="stakeholder-name" name="name">
+                <label for="stakeholder-role">Role:</label>
+                <input type="text" id="stakeholder-role" name="role">
+                <label for="stakeholder-email">Email:</label>
+                <input type="text" id="stakeholder-email" name="email">
+                <label for="stakeholder-phone">Phone:</label>
+                <input type="text" id="stakeholder-phone" name="phone">
+                <label for="stakeholder-department">Department:</label>
+                <input type="text" id="stakeholder-department" name="department">
+                <button type="button" onclick="addStakeholder()">Add</button>
+                <button type="button" onclick="toggleAddForm('stakeholders')">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="GoalsAndObjectives" class="tabcontent">
+        <button onclick="fetchData('goals_and_objectives')">Fetch Data</button>
+        <button onclick="toggleAddForm('goals_and_objectives')">Add Goal/Objective</button>
+        <div id="goals-and-objectives-container"></div>
+        <div id="add-goal-objective-form-container" class="hidden">
+            <h2>Add Goal/Objective</h2>
+            <form id="add-goal-objective-form">
+                <label for="goal-id">ID:</label>
+                <input type="text" id="goal-id" name="id">
+                <label for="goal-description">Description:</label>
+                <input type="text" id="goal-description" name="description">
+                <label for="goal-priority">Priority:</label>
+                <input type="text" id="goal-priority" name="priority">
+                <label for="goal-stakeholder_id">Stakeholder ID:</label>
+                <input type="text" id="goal-stakeholder_id" name="stakeholder_id">
+                <label for="goal-deadline">Deadline:</label>
+                <input type="text" id="goal-deadline" name="deadline">
+                <button type="button" onclick="addGoalObjective()">Add</button>
+                <button type="button" onclick="toggleAddForm('goals_and_objectives')">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="BusinessProcesses" class="tabcontent">
+        <button onclick="fetchData('business_processes')">Fetch Data</button>
+        <button onclick="toggleAddForm('business_processes')">Add Business Process</button>
+        <div id="business-processes-container"></div>
+        <div id="add-business-process-form-container" class="hidden">
+            <h2>Add Business Process</h2>
+            <form id="add-business-process-form">
+                <label for="process-id">ID:</label>
+                <input type="text" id="process-id" name="id">
+                <label for="process-name">Name:</label>
+                <input type="text" id="process-name" name="name">
+                <label for="process-description">Description:</label>
+                <input type="text" id="process-description" name="description">
+                <label for="process-owner">Owner:</label>
+                <input type="text" id="process-owner" name="owner">
+                <label for="process-department">Department:</label>
+                <input type="text" id="process-department" name="department">
+                <label for="process-inputs">Inputs:</label>
+                <input type="text" id="process-inputs" name="inputs">
+                <label for="process-outputs">Outputs:</label>
+                <input type="text" id="process-outputs" name="outputs">
+                <button type="button" onclick="addBusinessProcess()">Add</button>
+                <button type="button" onclick="toggleAddForm('business_processes')">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="SystemsAndApplications" class="tabcontent">
+        <button onclick="fetchData('systems_and_applications')">Fetch Data</button>
+        <button onclick="toggleAddForm('systems_and_applications')">Add System/Application</button>
+        <div id="systems-and-applications-container"></div>
+        <div id="add-system-application-form-container" class="hidden">
+            <h2>Add System/Application</h2>
+            <form id="add-system-application-form">
+                <label for="system-id">ID:</label>
+                <input type="text" id="system-id" name="id">
+                <label for="system-name">Name:</label>
+                <input type="text" id="system-name" name="name">
+                <label for="system-description">Description:</label>
+                <input type="text" id="system-description" name="description">
+                <label for="system-owner">Owner:</label>
+                <input type="text" id="system-owner" name="owner">
+                <label for="system-type">Type:</label>
+                <input type="text" id="system-type" name="type">
+                <label for="system-integration_points">Integration Points:</label>
+                <input type="text" id="system-integration_points" name="integration_points">
+                <label for="system-related_requirements">Related Requirements:</label>
+                <input type="text" id="system-related_requirements" name="related_requirements">
+                <button type="button" onclick="addSystemApplication()">Add</button>
+                <button type="button" onclick="toggleAddForm('systems_and_applications')">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="DataEntities" class="tabcontent">
+        <button onclick="fetchData('data_entities')">Fetch Data</button>
+        <button onclick="toggleAddForm('data_entities')">Add Data Entity</button>
+        <div id="data-entities-container"></div>
+        <div id="add-data-entity-form-container" class="hidden">
+            <h2>Add Data Entity</h2>
+            <form id="add-data-entity-form">
+                <label for="entity-id">ID:</label>
+                <input type="text" id="entity-id" name="id">
+                <label for="entity-name">Name:</label>
+                <input type="text" id="entity-name" name="name">
+                <label for="entity-description">Description:</label>
+                <input type="text" id="entity-description" name="description">
+                <label for="entity-attributes">Attributes:</label>
+                <input type="text" id="entity-attributes" name="attributes">
+                <label for="entity-related_systems">Related Systems:</label>
+                <input type="text" id="entity-related_systems" name="related_systems">
+                <button type="button" onclick="addDataEntity()">Add</button>
+                <button type="button" onclick="toggleAddForm('data_entities')">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="MetricsAndKpis" class="tabcontent">
+        <button onclick="fetchData('metrics_and_kpis')">Fetch Data</button>
+        <button onclick="toggleAddForm('metrics_and_kpis')">Add Metric/KPI</button>
+        <div id="metrics-and-kpis-container"></div>
+        <div id="add-metric-kpi-form-container" class="hidden">
+            <h2>Add Metric/KPI</h2>
+            <form id="add-metric-kpi-form">
+                <label for="metric-id">ID:</label>
+                <input type="text" id="metric-id" name="id">
+                <label for="metric-name">Name:</label>
+                <input type="text" id="metric-name" name="name">
+                <label for="metric-description">Description:</label>
+                <input type="text" id="metric-description" name="description">
+                <label for="metric-target_value">Target Value:</label>
+                <input type="text" id="metric-target_value" name="target_value">
+                <label for="metric-related_goals">Related Goals:</label>
+                <input type="text" id="metric-related_goals" name="related_goals">
+                <button type="button" onclick="addMetricKpi()">Add</button>
+                <button type="button" onclick="toggleAddForm('metrics_and_kpis')">Cancel</button>
+            </form>
+        </div>
     </div>
 
     <script>
-        async function fetchData() {
+        function openTab(evt, tabName) {
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tabcontent");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            tablinks = document.getElementsByClassName("tablinks");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.className += " active";
+        }
+
+        async function fetchData(entity) {
             try {
                 const response = await fetch('/api/data');
                 const data = await response.json();
-                displayData(data);
+                displayData(data, entity);
             } catch (error) {
                 console.error('Error fetching data:', error);
             }
         }
 
-        function displayData(data) {
-            const container = document.getElementById('data-container');
+        function displayData(data, entity) {
+            const container = document.getElementById(entity + '-container');
             container.innerHTML = '';
             const table = document.createElement('table');
             const header = table.insertRow();
-            const headers = ['ID', 'Description', 'Type', 'Priority', 'Source', 'Related Goal ID', 'Related Process ID', 'Actions'];
+            const headers = Object.keys(data.data[0]);
             headers.forEach(text => {
                 const th = document.createElement('th');
                 th.appendChild(document.createTextNode(text));
                 header.appendChild(th);
             });
-            data.data.forEach(requirement => {
+            const actionsHeader = document.createElement('th');
+            actionsHeader.appendChild(document.createTextNode('Actions'));
+            header.appendChild(actionsHeader);
+            data.data.forEach(item => {
                 const row = table.insertRow();
-                Object.values(requirement).forEach(text => {
+                Object.values(item).forEach(text => {
                     const cell = row.insertCell();
                     cell.appendChild(document.createTextNode(text));
                 });
                 const actionsCell = row.insertCell();
                 const editButton = document.createElement('button');
                 editButton.appendChild(document.createTextNode('Edit'));
-                editButton.onclick = () => editRequirement(requirement);
+                editButton.onclick = () => editItem(entity, item);
                 const deleteButton = document.createElement('button');
                 deleteButton.appendChild(document.createTextNode('Delete'));
-                deleteButton.onclick = () => deleteRequirement(requirement.id);
+                deleteButton.onclick = () => deleteItem(entity, item.id);
                 actionsCell.appendChild(editButton);
                 actionsCell.appendChild(deleteButton);
             });
             container.appendChild(table);
         }
 
-        function toggleAddForm() {
-            const formContainer = document.getElementById('add-form-container');
+        function toggleAddForm(entity) {
+            const formContainer = document.getElementById('add-' + entity + '-form-container');
             formContainer.classList.toggle('hidden');
         }
 
         async function addRequirement() {
-            const form = document.getElementById('add-form');
+            const form = document.getElementById('add-requirement-form');
             const formData = new FormData(form);
             const requirement = Object.fromEntries(formData.entries());
             try {
@@ -92,46 +302,168 @@
                     body: JSON.stringify(requirement)
                 });
                 const data = await response.json();
-                displayData(data);
-                toggleAddForm();
+                displayData(data, 'requirements');
+                toggleAddForm('requirements');
             } catch (error) {
                 console.error('Error adding requirement:', error);
             }
         }
 
-        async function editRequirement(requirement) {
-            const newDescription = prompt('Edit description:', requirement.description);
+        async function addStakeholder() {
+            const form = document.getElementById('add-stakeholder-form');
+            const formData = new FormData(form);
+            const stakeholder = Object.fromEntries(formData.entries());
+            try {
+                const response = await fetch('/api/data', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(stakeholder)
+                });
+                const data = await response.json();
+                displayData(data, 'stakeholders');
+                toggleAddForm('stakeholders');
+            } catch (error) {
+                console.error('Error adding stakeholder:', error);
+            }
+        }
+
+        async function addGoalObjective() {
+            const form = document.getElementById('add-goal-objective-form');
+            const formData = new FormData(form);
+            const goalObjective = Object.fromEntries(formData.entries());
+            try {
+                const response = await fetch('/api/data', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(goalObjective)
+                });
+                const data = await response.json();
+                displayData(data, 'goals_and_objectives');
+                toggleAddForm('goals_and_objectives');
+            } catch (error) {
+                console.error('Error adding goal/objective:', error);
+            }
+        }
+
+        async function addBusinessProcess() {
+            const form = document.getElementById('add-business-process-form');
+            const formData = new FormData(form);
+            const businessProcess = Object.fromEntries(formData.entries());
+            try {
+                const response = await fetch('/api/data', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(businessProcess)
+                });
+                const data = await response.json();
+                displayData(data, 'business_processes');
+                toggleAddForm('business_processes');
+            } catch (error) {
+                console.error('Error adding business process:', error);
+            }
+        }
+
+        async function addSystemApplication() {
+            const form = document.getElementById('add-system-application-form');
+            const formData = new FormData(form);
+            const systemApplication = Object.fromEntries(formData.entries());
+            try {
+                const response = await fetch('/api/data', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(systemApplication)
+                });
+                const data = await response.json();
+                displayData(data, 'systems_and_applications');
+                toggleAddForm('systems_and_applications');
+            } catch (error) {
+                console.error('Error adding system/application:', error);
+            }
+        }
+
+        async function addDataEntity() {
+            const form = document.getElementById('add-data-entity-form');
+            const formData = new FormData(form);
+            const dataEntity = Object.fromEntries(formData.entries());
+            try {
+                const response = await fetch('/api/data', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(dataEntity)
+                });
+                const data = await response.json();
+                displayData(data, 'data_entities');
+                toggleAddForm('data_entities');
+            } catch (error) {
+                console.error('Error adding data entity:', error);
+            }
+        }
+
+        async function addMetricKpi() {
+            const form = document.getElementById('add-metric-kpi-form');
+            const formData = new FormData(form);
+            const metricKpi = Object.fromEntries(formData.entries());
+            try {
+                const response = await fetch('/api/data', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(metricKpi)
+                });
+                const data = await response.json();
+                displayData(data, 'metrics_and_kpis');
+                toggleAddForm('metrics_and_kpis');
+            } catch (error) {
+                console.error('Error adding metric/KPI:', error);
+            }
+        }
+
+        async function editItem(entity, item) {
+            const newDescription = prompt('Edit description:', item.description);
             if (newDescription) {
-                requirement.description = newDescription;
+                item.description = newDescription;
                 try {
                     const response = await fetch('/api/data', {
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json'
                         },
-                        body: JSON.stringify(requirement)
+                        body: JSON.stringify(item)
                     });
                     const data = await response.json();
-                    displayData(data);
+                    displayData(data, entity);
                 } catch (error) {
-                    console.error('Error editing requirement:', error);
+                    console.error('Error editing item:', error);
                 }
             }
         }
 
-        async function deleteRequirement(id) {
-            if (confirm('Are you sure you want to delete this requirement?')) {
+        async function deleteItem(entity, id) {
+            if (confirm('Are you sure you want to delete this item?')) {
                 try {
                     const response = await fetch(`/api/data?id=${id}`, {
                         method: 'DELETE'
                     });
                     const data = await response.json();
-                    displayData(data);
+                    displayData(data, entity);
                 } catch (error) {
-                    console.error('Error deleting requirement:', error);
+                    console.error('Error deleting item:', error);
                 }
             }
         }
+
+        document.getElementsByClassName('tablinks')[0].click();
     </script>
 </body>
 </html>
