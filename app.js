@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const entityNavList = document.getElementById('entity-nav-list');
     const contentArea = document.getElementById('content');
     const messagesArea = document.getElementById('messages');
-    const downloadRtfButton = document.getElementById('download-rtf-button'); // Get the new button
+    const downloadRtfButton = document.getElementById('download-rtf-button');
 
 
     let currentEntityType = null; // Keep track of the currently viewed entity type
@@ -71,25 +71,65 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const title = entityType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
         let html = `<h2>${title}</h2>`;
-        // Use data-entity attribute for easier selection later if needed
+
+        // --- NEW: Add Search UI for Requirements ---
+        if (entityType === 'requirements') {
+            html += `
+                <div style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                    <input type="search" id="req-search-input" placeholder="Search requirement descriptions..." style="flex-grow: 1; padding: 8px;">
+                    <button id="req-search-button" onclick="app.performSearch()" style="padding: 8px 12px;">Search</button>
+                    <span id="req-search-status" style="font-size: 0.9em; color: #666;"></span>
+                </div>
+            `;
+            // Trigger indexing if not already done (or if model wasn't ready before)
+            ensureExtractorInitializedAndIndexRequirements(items);
+        }
+        // --- End of NEW Search UI ---
+
+        // Add "Add New" button
         html += `<button class="add-button" data-entity="${entityType}" onclick="app.renderForm('${entityType}')">Add New ${title.slice(0,-1)}</button>`; // Assumes plural title
 
-        if (!items || items.length === 0) {
+        // --- MODIFIED: Handle search results (items might be sorted with scores) ---
+        const displayItems = items; // Use the potentially sorted items passed in
+        const isSearchResult = displayItems.length > 0 && displayItems[0].hasOwnProperty('similarityScore');
+
+        if (!displayItems || displayItems.length === 0) {
             html += '<p>No items found.</p>';
+            // If it was a search, mention that
+            if (document.getElementById('req-search-input')?.value) {
+                 html += '<p>Your search returned no results.</p>';
+            }
         } else {
             // Dynamically get headers from the keys of the first item
             const headers = Object.keys(items[0]);
             html += '<table><thead><tr>';
+            // --- NEW: Add Similarity Score header if it's search results ---
+            if (isSearchResult) {
+                 html += `<th>Similarity</th>`;
+            }
             headers.forEach(header => {
-                 html += `<th>${header.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</th>`;
+                 // Don't show the similarityScore as a regular column
+                 if (header !== 'similarityScore') {
+                     html += `<th>${header.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</th>`;
+                 }
             });
-            html += '<th>Actions</th>';
+            html += '<th>Actions</th>'; // Actions column header
             html += '</tr></thead><tbody>';
 
-            items.forEach(item => {
+            displayItems.forEach(item => {
                 html += '<tr>';
                 const itemId = item.id || ''; // Ensure ID exists
+
+                // --- NEW: Add Similarity Score cell ---
+                if (isSearchResult) {
+                    const score = (item.similarityScore * 100).toFixed(1); // Percentage
+                    html += `<td style="text-align: right; font-weight: bold;">${score}%</td>`;
+                }
+
                 headers.forEach(header => {
+                     // Don't show the similarityScore as a regular column value
+                     if (header === 'similarityScore') return;
+
                     let value = item[header];
                     // Display complex types (arrays/objects) as formatted JSON in <pre>
                     if (typeof value === 'object' && value !== null) {
@@ -385,16 +425,27 @@ document.addEventListener('DOMContentLoaded', () => {
          try {
              // Check cache first
              if (!currentDataCache[entityType]) {
-                currentDataCache[entityType] = await fetchAPI(`/entities/${entityType}`);
+                 currentDataCache[entityType] = await fetchAPI(`/entities/${entityType}`);
              }
              const items = currentDataCache[entityType] || []; // Use cache or fallback to empty
-             renderEntityList(entityType, items);
+
+             // --- MODIFIED: Trigger indexing for requirements, render list ---
+             if (entityType === 'requirements') {
+                 // Render the list first (including search UI), then index in background
+                 renderEntityList(entityType, items);
+                 // ensureExtractorInitializedAndIndexRequirements is now called *inside* renderEntityList
+                 // to make sure the UI elements exist first.
+             } else {
+                 // For other types, just render
+                 renderEntityList(entityType, items);
+             }
              showMessage(''); // Clear loading message
          } catch (error) {
               // Error message shown by fetchAPI
               contentArea.innerHTML = `<p style="color: red;">Failed to load data for ${entityType}.</p>`;
          }
     }
+
 
     // --- Initialization ---
 
@@ -435,9 +486,13 @@ document.addEventListener('DOMContentLoaded', () => {
     window.app = {
         renderForm,
         deleteItem,
-        loadEntityList
+        loadEntityList,
+        performSearch // <-- NEW: Expose search function
     };
 
     // Start the application
+    // Initialize the feature extractor lazily when requirements are first viewed,
+    // or potentially trigger it here if requirements are the default view.
+    // For now, it's triggered by loadEntityList('requirements').
     initialize();
 });
