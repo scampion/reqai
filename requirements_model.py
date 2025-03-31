@@ -54,17 +54,44 @@ class GoalsModel:
     def __repr__(self):
         return f"GoalsModel(goals={self.goals})"
 
+class BusinessProcess:
+    def __init__(self, identifier, name, description):
+        self.identifier = identifier
+        self.name = name
+        self.description = description
+
+    def __repr__(self):
+        return (f"BusinessProcess(identifier={self.identifier}, name={self.name}, description={self.description})")
+
+class BusinessProcessesModel:
+    def __init__(self):
+        self.business_processes = []
+
+    def add_business_process(self, business_process):
+        self.business_processes.append(business_process)
+
+    def get_business_process(self, identifier):
+        for business_process in self.business_processes:
+            if business_process.identifier == identifier:
+                return business_process
+        return None
+
+    def __repr__(self):
+        return f"BusinessProcessesModel(business_processes={self.business_processes})"
+
 class Requirement:
-    def __init__(self, identifier, description, priority, stakeholder_ids, goal_ids):
+    def __init__(self, identifier, description, priority, stakeholder_ids, goal_ids, process_ids=None):
         self.identifier = identifier
         self.description = description
         self.priority = priority
         self.stakeholder_ids = stakeholder_ids
         self.goal_ids = goal_ids
+        self.process_ids = process_ids if process_ids is not None else []
 
     def __repr__(self):
         return (f"Requirement(identifier={self.identifier}, description={self.description}, "
-                f"priority={self.priority}, stakeholder_ids={self.stakeholder_ids}, goal_ids={self.goal_ids})")
+                f"priority={self.priority}, stakeholder_ids={self.stakeholder_ids}, goal_ids={self.goal_ids}, "
+                f"process_ids={self.process_ids})")
 
 class RequirementsModel:
     def __init__(self):
