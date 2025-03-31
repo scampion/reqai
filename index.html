@@ -227,16 +227,37 @@
             container.innerHTML = '';
             const table = document.createElement('table');
             const header = table.insertRow();
+            
+            // Get headers from first item or empty array if no data
+            const headers = data.length > 0 ? Object.keys(data[0]) : [];
+            
+            // Always create headers even if no data
+            headers.forEach(text => {
+                const th = document.createElement('th');
+                th.appendChild(document.createTextNode(text));
+                header.appendChild(th);
+            });
+            const actionsHeader = document.createElement('th');
+            actionsHeader.appendChild(document.createTextNode('Actions'));
+            header.appendChild(actionsHeader);
+            
             if (data.length > 0) {
-                const headers = Object.keys(data[0]);
-                headers.forEach(text => {
-                    const th = document.createElement('th');
-                    th.appendChild(document.createTextNode(text));
-                    header.appendChild(th);
+                data.forEach(item => {
+                    const row = table.insertRow();
+                    Object.values(item).forEach(text => {
+                        const cell = row.insertCell();
+                        cell.appendChild(document.createTextNode(text));
+                    });
+                    const actionsCell = row.insertCell();
+                    const editButton = document.createElement('button');
+                    editButton.appendChild(document.createTextNode('Edit'));
+                    editButton.onclick = () => editItem(entity, item);
+                    const deleteButton = document.createElement('button');
+                    deleteButton.appendChild(document.createTextNode('Delete'));
+                    deleteButton.onclick = () => deleteItem(entity, item.id);
+                    actionsCell.appendChild(editButton);
+                    actionsCell.appendChild(deleteButton);
                 });
-                const actionsHeader = document.createElement('th');
-                actionsHeader.appendChild(document.createTextNode('Actions'));
-                header.appendChild(actionsHeader);
                 data.forEach(item => {
                     const row = table.insertRow();
                     Object.values(item).forEach(text => {
