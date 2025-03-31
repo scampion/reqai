@@ -4,22 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>REST API Client</title>
-    <style>
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        table, th, td {
-            border: 1px solid black;
-        }
-        th, td {
-            padding: 10px;
-            text-align: left;
-        }
-        .hidden {
-            display: none;
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <h1>REST API Client</h1>
@@ -29,20 +14,20 @@
     <div id="add-form-container" class="hidden">
         <h2>Add Requirement</h2>
         <form id="add-form">
-            <label for="id">ID:</label><br>
-            <input type="text" id="id" name="id"><br>
-            <label for="description">Description:</label><br>
-            <input type="text" id="description" name="description"><br>
-            <label for="type">Type:</label><br>
-            <input type="text" id="type" name="type"><br>
-            <label for="priority">Priority:</label><br>
-            <input type="text" id="priority" name="priority"><br>
-            <label for="source">Source:</label><br>
-            <input type="text" id="source" name="source"><br>
-            <label for="related_goal_id">Related Goal ID:</label><br>
-            <input type="text" id="related_goal_id" name="related_goal_id"><br>
-            <label for="related_process_id">Related Process ID:</label><br>
-            <input type="text" id="related_process_id" name="related_process_id"><br>
+            <label for="id">ID:</label>
+            <input type="text" id="id" name="id">
+            <label for="description">Description:</label>
+            <input type="text" id="description" name="description">
+            <label for="type">Type:</label>
+            <input type="text" id="type" name="type">
+            <label for="priority">Priority:</label>
+            <input type="text" id="priority" name="priority">
+            <label for="source">Source:</label>
+            <input type="text" id="source" name="source">
+            <label for="related_goal_id">Related Goal ID:</label>
+            <input type="text" id="related_goal_id" name="related_goal_id">
+            <label for="related_process_id">Related Process ID:</label>
+            <input type="text" id="related_process_id" name="related_process_id">
             <button type="button" onclick="addRequirement()">Add</button>
             <button type="button" onclick="toggleAddForm()">Cancel</button>
         </form>
