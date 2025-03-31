@@ -73,7 +73,7 @@
     <div id="GoalsAndObjectives" class="tabcontent">
         <button onclick="fetchData('goals_and_objectives')">Fetch Data</button>
         <button onclick="toggleAddForm('goals_and_objectives')">Add Goal/Objective</button>
-        <div id="goals-and-objectives-container"></div>
+        <div id="goals_and_objectives-container"></div>
         <div id="add-goal-objective-form-container" class="hidden">
             <h2>Add Goal/Objective</h2>
             <form id="add-goal-objective-form">
@@ -224,6 +224,10 @@
 
         function displayData(data, entity) {
             const container = document.getElementById(entity + '-container');
+            if (!container) {
+                console.error('Container not found for entity:', entity);
+                return;
+            }
             container.innerHTML = '';
             const table = document.createElement('table');
             const header = table.insertRow();
