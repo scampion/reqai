@@ -1,8 +1,6 @@
 /* styles.css */
-@import url('https://db.onlinewebfonts.com/c/12ff62164c9778917bddb93c6379cf47?family=Aeonik+Pro+Regular');
-
 body {
-    font-family: 'Aeonik Pro Regular', Arial, sans-serif;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
     background-color: #353d3e;
     margin: 0;
     padding: 0;

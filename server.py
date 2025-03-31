@@ -3,7 +3,7 @@ import json
 import socketserver
 from urllib.parse import parse_qs, urlparse
 
-PORT = 8001
+PORT = 8002
 
 class MyHttpRequestHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
@@ -37,8 +37,6 @@ class MyHttpRequestHandler(http.server.SimpleHTTPRequestHandler):
                 data = json.load(file)
                 if 'id' in item and 'description' in item:
                     if item['id'].startswith('REQ'):
-                        if not item['id'].startswith('REQ'):
-                            item['id'] = 'REQ' + item['id']
                         data['requirements'].append(item)
                     elif item['id'].startswith('STK'):
                         data['stakeholders'].append(item)
