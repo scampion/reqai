@@ -271,6 +271,12 @@
             const form = document.getElementById('add-requirement-form');
             const formData = new FormData(form);
             const requirement = Object.fromEntries(formData.entries());
+            
+            // Validate ID starts with REQ
+            if (!requirement.id.startsWith('REQ')) {
+                alert('Requirement ID must start with "REQ"');
+                return;
+            }
             try {
                 const response = await fetch('/api/data', {
                     method: 'POST',
