@@ -482,12 +482,41 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // --- Search Functionality ---
+    async function performSearch() {
+        const searchInput = document.getElementById('req-search-input');
+        const searchTerm = searchInput?.value.trim();
+        const searchStatus = document.getElementById('req-search-status');
+        
+        if (!searchTerm) {
+            searchStatus.textContent = 'Please enter a search term';
+            return;
+        }
+
+        try {
+            searchStatus.textContent = 'Searching...';
+            const results = await fetchAPI(`/entities/requirements/search?q=${encodeURIComponent(searchTerm)}`);
+            
+            if (results && results.length > 0) {
+                renderEntityList('requirements', results);
+                searchStatus.textContent = `Found ${results.length} matching requirements`;
+            } else {
+                renderEntityList('requirements', []);
+                searchStatus.textContent = 'No matching requirements found';
+            }
+        } catch (error) {
+            console.error('Search failed:', error);
+            searchStatus.textContent = 'Search failed - see console';
+            showMessage(`Search error: ${error.message}`, true);
+        }
+    }
+
     // Expose functions needed by inline HTML event handlers (onclick)
     window.app = {
         renderForm,
         deleteItem,
         loadEntityList,
-        performSearch // <-- NEW: Expose search function
+        performSearch
     };
 
     // Start the application
