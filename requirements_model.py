@@ -1,11 +1,13 @@
 class Stakeholder:
-    def __init__(self, identifier, name, role):
+    def __init__(self, identifier, name, role, contact_info):
         self.identifier = identifier
         self.name = name
         self.role = role
+        self.contact_info = contact_info
 
     def __repr__(self):
-        return f"Stakeholder(identifier={self.identifier}, name={self.name}, role={self.role})"
+        return (f"Stakeholder(identifier={self.identifier}, name={self.name}, role={self.role}, "
+                f"contact_info={self.contact_info})")
 
 class StakeholdersModel:
     def __init__(self):
