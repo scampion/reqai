@@ -3,7 +3,7 @@ import json
 import socketserver
 from urllib.parse import parse_qs, urlparse
 
-PORT = 8000
+PORT = 8001
 
 class MyHttpRequestHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
