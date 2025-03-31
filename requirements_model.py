@@ -85,18 +85,19 @@ class BusinessProcessesModel:
         return f"BusinessProcessesModel(business_processes={self.business_processes})"
 
 class Requirement:
-    def __init__(self, identifier, description, priority, type, stakeholder_ids, goal_ids, process_ids=None):
+    def __init__(self, identifier, description, priority, type, source, stakeholder_ids, goal_ids, process_ids=None):
         self.identifier = identifier
         self.description = description
         self.priority = priority
         self.type = type
+        self.source = source
         self.stakeholder_ids = stakeholder_ids
         self.goal_ids = goal_ids
         self.process_ids = process_ids if process_ids is not None else []
 
     def __repr__(self):
         return (f"Requirement(identifier={self.identifier}, description={self.description}, "
-                f"priority={self.priority}, type={self.type}, stakeholder_ids={self.stakeholder_ids}, goal_ids={self.goal_ids}, "
+                f"priority={self.priority}, type={self.type}, source={self.source}, stakeholder_ids={self.stakeholder_ids}, goal_ids={self.goal_ids}, "
                 f"process_ids={self.process_ids})")
 
 class RequirementsModel:
