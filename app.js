@@ -493,13 +493,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Text Embedding and Search Functionality ---
     let featureExtractor = null;
     let requirementsIndex = null;
+    let transformersInitialized = false;
 
     async function ensureExtractorInitializedAndIndexRequirements(requirements) {
-        if (!featureExtractor) {
+        if (!transformersInitialized) {
             try {
-                showMessage('Initializing text embedding model...');
-                // @ts-ignore - Transformers.js is loaded via CDN
+                showMessage('Loading text embedding model...');
+                // Dynamically import Transformers.js
+                const { pipeline } = await import('https://cdn.jsdelivr.net/npm/@xenova/transformers@2.6.0');
                 featureExtractor = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
+                transformersInitialized = true;
                 showMessage('Text embedding model ready');
             } catch (error) {
                 console.error('Failed to initialize feature extractor:', error);
@@ -552,7 +555,11 @@ document.addEventListener('DOMContentLoaded', () => {
             searchStatus.textContent = 'Searching...';
             // First ensure we have embeddings for all requirements
             const allRequirements = currentDataCache['requirements'] || await fetchAPI('/entities/requirements');
-            await ensureExtractorInitializedAndIndexRequirements(allRequirements);
+            const initialized = await ensureExtractorInitializedAndIndexRequirements(allRequirements);
+            
+            if (!initialized || !featureExtractor) {
+                throw new Error('Search functionality not available');
+            }
 
             // Generate embedding for search query
             const queryEmbedding = await featureExtractor(searchTerm, { pooling: 'mean', normalize: true });
