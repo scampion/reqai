@@ -9,7 +9,7 @@ ReqAI is a lightweight requirements management system with built-in semantic sea
 - **Simple Deployment** - Single-file server with built-in web UI
 - **RTF Export** - Generate formatted documentation with one click
 
-![image-20250331222631242](img/image-20250331222631242.png)
+![image-20250401211018512](img/image-20250401211018512.png)
 
 ## Requirements
 
