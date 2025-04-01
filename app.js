@@ -245,9 +245,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 else if (key === 'related_process_id' && entityType === 'requirements' && related?.processIds?.length > 0) {
                     fieldsHtml += `<select id="${fieldId}" name="${key}">`;
                     fieldsHtml += `<option value="">-- Select Process --</option>`; // Default empty option
-                    related.processIds.forEach(processId => {
-                        const selectedAttr = (processId === currentValue) ? ' selected' : '';
-                        fieldsHtml += `<option value="${processId}"${selectedAttr}>${processId}</option>`;
+                    const processes = currentDataCache['business_processes'] || [];
+                    processes.forEach(process => {
+                        if (!process.id) return;
+                        const selectedAttr = (process.id === currentValue) ? ' selected' : '';
+                        const description = process.description ? process.description.substring(0, 50) + (process.description.length > 50 ? '...' : '') : '';
+                        fieldsHtml += `<option value="${process.id}"${selectedAttr}>${process.id} - ${description}</option>`;
                     });
                     fieldsHtml += `</select>`;
                 }
