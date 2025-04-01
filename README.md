@@ -1,6 +1,6 @@
 # ReqAI - Requirements Management with AI Search
 
-ReqAI is a lightweight requirements management system with built-in semantic search capabilities, requiring only a Python runtime for deployment.
+ReqAI is a lightweight requirements management system with built-in semantic search capabilities, requiring only a Python runtime for deployment, because small is beautiful ...
 
 ## Key Features
 
