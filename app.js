@@ -467,10 +467,21 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const entityTypes = await fetchAPI('/entity_types');
             entityNavList.innerHTML = ''; // Clear 'Loading...'
+            const emojiMap = {
+                'stakeholders': '👥',
+                'goals_and_objectives': '🎯', 
+                'business_processes': '🔄',
+                'requirements': '📋',
+                'systems_and_applications': '💻',
+                'data_entities': '🗄️',
+                'risks_and_constraints': '⚠️',
+                'metrics_and_kpis': '📊'
+            };
             entityTypes.sort().forEach(type => {
                 const li = document.createElement('li');
                 const button = document.createElement('button');
-                button.textContent = type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                const emoji = emojiMap[type] || '📌';
+                button.textContent = `${emoji} ${type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}`;
                 button.dataset.entity = type; // Store entity type in data attribute
                 button.onclick = () => loadEntityList(type);
                 li.appendChild(button);
