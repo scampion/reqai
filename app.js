@@ -232,9 +232,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (key === 'related_goal_id' && entityType === 'requirements' && related?.goalIds?.length > 0) {
                     fieldsHtml += `<select id="${fieldId}" name="${key}">`;
                     fieldsHtml += `<option value="">-- Select Goal --</option>`; // Default empty option
-                    related.goalIds.forEach(goalId => {
-                        const selectedAttr = (goalId === currentValue) ? ' selected' : '';
-                        fieldsHtml += `<option value="${goalId}"${selectedAttr}>${goalId}</option>`;
+                    const goals = currentDataCache['goals_and_objectives'] || [];
+                    goals.forEach(goal => {
+                        if (!goal.id) return;
+                        const selectedAttr = (goal.id === currentValue) ? ' selected' : '';
+                        const description = goal.description ? goal.description.substring(0, 50) + (goal.description.length > 50 ? '...' : '') : '';
+                        fieldsHtml += `<option value="${goal.id}"${selectedAttr}>${goal.id} - ${description}</option>`;
                     });
                     fieldsHtml += `</select>`;
                 }
