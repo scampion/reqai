@@ -17,19 +17,6 @@ HOST = "localhost"
 PORT = 8000
 DATA_FILE = "requirements_data.json"
 API_PREFIX = "/api/entities"
-# Define timezone for export filename (Standard library might lack full DB, use UTC or known local offset)
-# Let's try to get local offset if possible, otherwise default to UTC concept
-# try:
-#     # Standard library approach for local timezone name (can be unreliable)
-#     LOCAL_TIMEZONE_NAME = time.tzname[time.localtime().tm_isdst]
-#     # For demonstration, explicitly using Brussels time via fixed offset if name lookup fails
-#     # WARNING: Standard library fixed offsets don't handle DST changes automatically like pytz would.
-#     # CET is UTC+1, CEST is UTC+2. March 31st is CEST.
-#     EXPORT_TIMEZONE = datetime.timezone(datetime.timedelta(hours=2), name="Europe/Brussels_Approximation") # CEST approx
-#     print(f"Attempting to use timezone offset: {EXPORT_TIMEZONE}")
-# except Exception:
-#     print("Warning: Could not reliably determine local timezone. Defaulting export timestamp timezone to UTC.")
-#    EXPORT_TIMEZONE = datetime.timezone.utc
 
 
 # --- Thread-safe Data Handling (Unchanged) ---

@@ -23,58 +23,46 @@
   ],
   "goals_and_objectives": [
     {
-      "id": "GOAL001",
-      "description": "Improve customer satisfaction by 20%",
+      "description": "Deploy a AI/ML Platform",
       "priority": "high",
       "stakeholder_id": "STK001",
-      "deadline": "2024-12-31"
+      "deadline": "2024-12-31",
+      "id": "GOAL003"
     },
     {
-      "id": "GOAL002",
-      "description": "Reduce operational costs by 15%",
-      "priority": "medium",
-      "stakeholder_id": "STK002",
-      "deadline": "2024-06-30"
+      "description": "Deploy a Data Management Plateform",
+      "priority": "high",
+      "stakeholder_id": "STK001",
+      "deadline": "2024-12-31",
+      "id": "GOAL004"
+    },
+    {
+      "description": "Deploy an AI Ops deployment and serving mode",
+      "priority": "high",
+      "stakeholder_id": "STK001",
+      "deadline": "2024-12-31",
+      "id": "GOAL005"
+    },
+    {
+      "description": "Deploy an MLOps platform",
+      "priority": "high",
+      "stakeholder_id": "STK001",
+      "deadline": "2024-12-31",
+      "id": "GOAL006"
     }
   ],
   "business_processes": [
     {
-      "id": "BP001",
-      "name": "Customer Onboarding",
-      "description": "Process to onboard new customers",
+      "name": "Create ML Model",
+      "description": "build new ml models",
       "owner": "STK002",
       "department": "Sales",
-      "inputs": [
-        "Customer Data"
-      ],
-      "outputs": [
-        "Onboarded Customer"
-      ]
-    },
-    {
-      "id": "BP002",
-      "name": "Order Fulfillment",
-      "description": "Process to fulfill customer orders",
-      "owner": "STK001",
-      "department": "Operations",
-      "inputs": [
-        "Order Details"
-      ],
-      "outputs": [
-        "Fulfilled Order"
-      ]
+      "inputs": [],
+      "outputs": [],
+      "id": "BP003"
     }
   ],
   "requirements": [
-    {
-      "id": "REQ001",
-      "description": "Implement a new CRM system",
-      "type": "functional",
-      "priority": "high",
-      "source": "STK001",
-      "related_goal_id": "GOAL001",
-      "related_process_id": "BP001"
-    },
     {
       "id": "REQ002",
       "description": "Automate order processing",
@@ -92,6 +80,24 @@
       "related_goal_id": "",
       "related_process_id": "",
       "id": "REQ004"
+    },
+    {
+      "description": "Implement a new CRM system 2",
+      "type": "functional",
+      "priority": "high",
+      "source": "STK001",
+      "related_goal_id": null,
+      "related_process_id": null,
+      "id": "REQ005"
+    },
+    {
+      "description": "Store preprocessing pipeline in the model registry (like a one hot encoder) ",
+      "type": "functional",
+      "priority": "high",
+      "source": "STK001",
+      "related_goal_id": "GOAL003",
+      "related_process_id": "BP003",
+      "id": "REQ008"
     }
   ],
   "systems_and_applications": [
