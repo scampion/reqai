@@ -341,6 +341,56 @@
             padding-top: 10px;
             border-top: 1px solid rgb(90, 105, 107);
         }
+
+        /* Styles for Tag Cloud / Filter */
+        .tag-list-container {
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: rgb(70, 80, 82); /* Slightly different background from cards */
+            border: 1px solid rgb(130, 145, 147);
+            border-radius: 4px;
+            display: flex; /* Allow items to wrap and align */
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .tag-list-container strong {
+            margin-right: 10px;
+            color: rgb(220, 210, 205);
+            white-space: nowrap; /* Prevent "Filter by Tag:" from wrapping */
+        }
+        .tag-button {
+            background-color: rgb(90, 105, 107);
+            color: rgb(220, 210, 205);
+            border: 1px solid rgb(130, 145, 147);
+            padding: 5px 10px;
+            margin-right: 5px;
+            margin-bottom: 5px; /* For spacing when tags wrap */
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .tag-button:hover {
+            background-color: rgb(130, 145, 147);
+        }
+        .tag-button.active {
+            background-color: rgb(255, 200, 150); /* Accent color for active tag */
+            color: rgb(53, 61, 62);
+            font-weight: bold;
+            border-color: rgb(255, 180, 130); /* Slightly darker border for active */
+        }
+        .tag-button.clear-filter {
+            background-color: rgb(180, 170, 165);
+            color: rgb(53, 61, 62);
+            font-weight: normal; /* Reset font weight if it was bold from .active */
+        }
+        .tag-button.clear-filter:hover {
+            background-color: rgb(160, 150, 145);
+        }
+        .tag-list-container span { /* For "No tags defined" message */
+            font-style: italic;
+            color: rgb(190, 180, 175);
+        }
     </style>
 </head>
 <body>

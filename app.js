@@ -8,8 +8,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let currentEntityType = null; // Keep track of the currently viewed entity type
     let currentDataCache = {}; // Simple cache for entity data
+    let activeTagFilter = null; // NEW: To store the currently active tag filter
 
     // --- Utility Functions ---
+
+    function escapeHTML(str) { // NEW: Moved to global scope
+        if (str === null || typeof str === 'undefined') return '';
+        return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
 
     function showMessage(message, isError = false) {
         messagesArea.textContent = message;
@@ -72,7 +78,42 @@ document.addEventListener('DOMContentLoaded', () => {
         const title = entityType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
         let html = `<h2>${title}</h2>`;
 
-        // --- NEW: Add Search UI for Requirements ---
+        // --- NEW: Add Tag Cloud for Requirements ---
+        if (entityType === 'requirements') {
+            const allRequirementsFromCache = currentDataCache['requirements'] || items; // Use full cache for comprehensive tag cloud
+            const uniqueTags = new Set();
+            if (allRequirementsFromCache) {
+                allRequirementsFromCache.forEach(item => {
+                    if (item.tags && Array.isArray(item.tags)) {
+                        item.tags.forEach(tag => {
+                            const trimmedTag = String(tag).trim(); // Ensure tag is a string before trimming
+                            if (trimmedTag) uniqueTags.add(trimmedTag);
+                        });
+                    }
+                });
+            }
+
+            let tagCloudHtml = '<div class="tag-list-container"><strong>Filter by Tag:</strong> ';
+            const sortedUniqueTags = Array.from(uniqueTags).sort();
+
+            if (sortedUniqueTags.length > 0) {
+                sortedUniqueTags.forEach(tag => {
+                    const isActive = tag === activeTagFilter;
+                    const escapedTag = escapeHTML(tag); // Uses global escapeHTML
+                    tagCloudHtml += `<button class="tag-button ${isActive ? 'active' : ''}" onclick="app.applyTagFilter('${escapedTag}')">${escapedTag}</button> `;
+                });
+                if (activeTagFilter) {
+                    tagCloudHtml += `<button class="tag-button clear-filter" onclick="app.clearTagFilter()">Clear Filter (Show All)</button>`;
+                }
+            } else {
+                tagCloudHtml += '<span>No tags defined across requirements.</span>';
+            }
+            tagCloudHtml += '</div>';
+            html += tagCloudHtml; // Add tag cloud to the main html output
+        }
+        // --- End of NEW Tag Cloud ---
+
+        // --- Add Search UI for Requirements ---
         if (entityType === 'requirements') {
             html += `
                 <div style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
@@ -89,14 +130,24 @@ document.addEventListener('DOMContentLoaded', () => {
         // Add "Add New" button
         html += `<button class="add-button" data-entity="${entityType}" onclick="app.renderForm('${entityType}')">Add New ${title.slice(0,-1)}</button>`; // Assumes plural title
 
-        // --- MODIFIED: Handle search results (items might be sorted with scores) ---
-        const displayItems = items; // Use the potentially sorted items passed in
+        // --- MODIFIED: Determine actual items to display based on filters/search ---
+        let displayItems = [...items]; // Start with items passed (all items or search results)
         const isSearchResult = displayItems.length > 0 && displayItems[0].hasOwnProperty('similarityScore');
+
+        if (entityType === 'requirements' && activeTagFilter && !isSearchResult) {
+            // If a tag filter is active AND we are not currently showing search results,
+            // then filter the *original full list* of requirements by this tag.
+            displayItems = (currentDataCache['requirements'] || []).filter(
+                item => item.tags && Array.isArray(item.tags) && item.tags.map(t => String(t).trim()).includes(activeTagFilter)
+            );
+        }
+        // Now 'displayItems' holds the correct set of items for rendering.
 
         if (!displayItems || displayItems.length === 0) {
             html += '<p>No items found.</p>';
-            // If it was a search, mention that
-            if (document.getElementById('req-search-input')?.value) {
+            if (activeTagFilter && entityType === 'requirements') {
+                html += `<p>No requirements match the tag: "${escapeHTML(activeTagFilter)}".</p>`;
+            } else if (document.getElementById('req-search-input')?.value && entityType === 'requirements') {
                  html += '<p>Your search returned no results.</p>';
             }
         } else {
@@ -104,10 +155,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (entityType === 'requirements') {
                 html += '<div id="requirements-card-view">'; // Container for card view
 
-                const escapeHTML = (str) => {
-                    if (str === null || typeof str === 'undefined') return '';
-                    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-                };
+                // const escapeHTML = (str) => { // Moved to global scope
+                // if (str === null || typeof str === 'undefined') return '';
+                // return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                // };
 
                 displayItems.forEach(item => {
                     const itemId = item.id || ''; // Ensure ID exists
@@ -725,12 +776,88 @@ document.addEventListener('DOMContentLoaded', () => {
         return magnitudeA && magnitudeB ? dotProduct / (magnitudeA * magnitudeB) : 0;
     }
 
+    // --- NEW: Tag Filtering Functions ---
+    function applyTagFilter(tag) {
+        activeTagFilter = tag;
+        // Clear search input when applying a tag filter
+        const searchInput = document.getElementById('req-search-input');
+        if (searchInput) searchInput.value = '';
+        const searchStatus = document.getElementById('req-search-status');
+        if (searchStatus) searchStatus.textContent = '';
+        
+        loadEntityList('requirements'); // Reload/re-render the list which will apply the filter
+    }
+
+    function clearTagFilter() {
+        activeTagFilter = null;
+        loadEntityList('requirements'); // Reload/re-render the list
+    }
+    // --- End of Tag Filtering Functions ---
+
+    // Modify performSearch to clear activeTagFilter
+    async function performSearch() {
+        activeTagFilter = null; // Clear any active tag filter when performing a search
+
+        const searchInput = document.getElementById('req-search-input');
+        const searchTerm = searchInput?.value.trim();
+        const searchStatus = document.getElementById('req-search-status');
+        
+        if (!searchTerm) {
+            searchStatus.textContent = 'Please enter a search term';
+            // If search term is cleared, show all requirements (respecting activeTagFilter if any - though it's cleared above)
+            loadEntityList('requirements'); // This will show all if activeTagFilter is null
+            return;
+        }
+
+        try {
+            searchStatus.textContent = 'Searching...';
+            const allRequirements = currentDataCache['requirements'] || await fetchAPI('/entities/requirements');
+            const initialized = await ensureExtractorInitializedAndIndexRequirements(allRequirements);
+            
+            if (!initialized || !featureExtractor) {
+                throw new Error('Search functionality not available');
+            }
+
+            const queryEmbedding = await featureExtractor(searchTerm, { pooling: 'mean', normalize: true });
+            
+            const results = [];
+            for (const reqId in requirementsIndex) {
+                const { embedding, requirement } = requirementsIndex[reqId];
+                const similarity = cosineSimilarity(queryEmbedding.data, embedding);
+                
+                if (similarity > 0.3) { 
+                    results.push({
+                        ...requirement,
+                        similarityScore: similarity
+                    });
+                }
+            }
+
+            results.sort((a, b) => b.similarityScore - a.similarityScore);
+            
+            if (results && results.length > 0) {
+                renderEntityList('requirements', results); // Pass search results
+                searchStatus.textContent = `Found ${results.length} matching requirements`;
+            } else {
+                renderEntityList('requirements', []); // Pass empty array for no results
+                searchStatus.textContent = 'No matching requirements found';
+            }
+        } catch (error) {
+            console.error('Search failed:', error);
+            searchStatus.textContent = 'Search failed - see console';
+            showMessage(`Search error: ${error.message}`, true);
+        }
+    }
+
+
     // Expose functions needed by inline HTML event handlers (onclick)
     window.app = {
         renderForm,
         deleteItem,
         loadEntityList,
-        performSearch
+        performSearch,
+        applyTagFilter, // NEW
+        clearTagFilter  // NEW
     };
 
     // Start the application
