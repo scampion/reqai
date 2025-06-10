@@ -307,7 +307,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 let keysToUse = Object.keys(sampleItem);
                 // Ensure essential requirement fields exist even if sample is empty
                  if(entityType === 'requirements') {
-                     const requiredKeys = ['description', 'type', 'priority', 'related_goal_id', 'related_process_id'];
+                     const requiredKeys = ['description', 'type', 'priority', 'related_goal_id', 'related_process_id', 'version'];
                      requiredKeys.forEach(reqKey => {
                          if (!keysToUse.includes(reqKey)) {
                              keysToUse.push(reqKey);
