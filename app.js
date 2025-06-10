@@ -633,6 +633,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 li.appendChild(button);
                 entityNavList.appendChild(li);
             });
+
+            // --- NEW: Load requirements by default ---
+            if (entityTypes.includes('requirements')) {
+                loadEntityList('requirements');
+            } else if (entityTypes.length > 0) {
+                // Fallback to loading the first entity type if 'requirements' doesn't exist
+                loadEntityList(entityTypes[0]);
+            } else {
+                contentArea.innerHTML = '<p>No entity types found. Cannot load default view.</p>';
+            }
+            // --- End of NEW ---
+
         } catch (error) {
             entityNavList.innerHTML = '<li>Error loading entity types. Is the API running?</li>';
             console.error("Initialization failed:", error);
