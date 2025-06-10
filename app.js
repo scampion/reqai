@@ -79,6 +79,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const title = entityType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
         let html = `<h2>${title}</h2>`;
 
+        // --- Add Search UI for Requirements ---
+        if (entityType === 'requirements') {
+            html += `
+                <div style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                    <input type="search" id="req-search-input" placeholder="Search requirement descriptions..." style="flex-grow: 1; padding: 8px;">
+                    <button id="req-search-button" onclick="app.performSearch()" style="padding: 8px 12px;">Search</button>
+                    <span id="req-search-status" style="font-size: 0.9em; color: #666;"></span>
+                </div>
+            `;
+            // Trigger indexing if not already done (or if model wasn't ready before)
+            ensureExtractorInitializedAndIndexRequirements(items);
+        }
+        // --- End of NEW Search UI ---
+        
         // --- NEW: Add Tag Cloud for Requirements ---
         if (entityType === 'requirements') {
             const allRequirementsFromCache = currentDataCache['requirements'] || items; // Use full cache for comprehensive tag cloud
@@ -94,7 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
 
-            let tagCloudHtml = '<div class="tag-list-container"><strong>Filter by Tag:</strong> ';
+            let tagCloudHtml = '<div class="tag-list-container"><strong>Tag filter(s):</strong> ';
             const sortedUniqueTags = Array.from(uniqueTags).sort();
 
             if (sortedUniqueTags.length > 0) {
@@ -122,7 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
 
-            let versionFilterHtml = '<div class="version-list-container"><strong>Filter by Version:</strong> ';
+            let versionFilterHtml = '<div class="version-list-container"><strong>Version filter(s):</strong> ';
             const sortedUniqueVersions = Array.from(uniqueVersions).sort();
 
             if (sortedUniqueVersions.length > 0) {
@@ -143,19 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         // --- End of NEW Tag Cloud ---
 
-        // --- Add Search UI for Requirements ---
-        if (entityType === 'requirements') {
-            html += `
-                <div style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
-                    <input type="search" id="req-search-input" placeholder="Search requirement descriptions..." style="flex-grow: 1; padding: 8px;">
-                    <button id="req-search-button" onclick="app.performSearch()" style="padding: 8px 12px;">Search</button>
-                    <span id="req-search-status" style="font-size: 0.9em; color: #666;"></span>
-                </div>
-            `;
-            // Trigger indexing if not already done (or if model wasn't ready before)
-            ensureExtractorInitializedAndIndexRequirements(items);
-        }
-        // --- End of NEW Search UI ---
+
 
         // Add "Add New" button
         html += `<button class="add-button" data-entity="${entityType}" onclick="app.renderForm('${entityType}')">Add New ${title.slice(0,-1)}</button>`; // Assumes plural title
