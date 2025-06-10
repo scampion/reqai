@@ -148,8 +148,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Add Edit and Delete buttons with data attributes
                 html += '<td class="actions">';
                 if (itemId) {
-                     html += `<button class="edit-button" data-entity="${entityType}" data-id="${itemId}" onclick="app.renderForm('${entityType}', '${itemId}')">Edit</button>`;
-                     html += `<button class="delete-button" data-entity="${entityType}" data-id="${itemId}" onclick="app.deleteItem('${entityType}', '${itemId}')">Delete</button>`;
+                     html += `<button class="edit-button" data-entity="${entityType}" data-id="${itemId}" title="Edit" onclick="app.renderForm('${entityType}', '${itemId}')"></button>`;
+                     html += `<button class="delete-button" data-entity="${entityType}" data-id="${itemId}" title="Delete" onclick="app.deleteItem('${entityType}', '${itemId}')"></button>`;
                 } else {
                      html += '<span>(No ID)</span>';
                 }

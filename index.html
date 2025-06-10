@@ -72,11 +72,13 @@
             margin: 0; 
             color: rgb(220, 210, 205);
         }
-        .actions button { 
+        .actions button {
+            color: rgb(255, 255, 255);
             margin-right: 5px; 
-            padding: 3px 6px; 
+            padding: 8px 10px;
             cursor: pointer; 
-            font-size: 0.85em; 
+            font-size: 1.2em;
+            margin: 2px ;
         }
         .add-button {
             display: inline-block; 
@@ -93,23 +95,26 @@
          .add-button::before {
             content: "➕ ";
          }
-        .delete-button { 
-            background-color: rgb(255, 50, 50); 
-            color: white; 
-            border: 1px solid rgb(200, 40, 40);
-            margin: 5px;
+        .delete-button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            text-decoration: none;
+            cursor: pointer;
+            font-weight: bold;
         }
         .delete-button::before {
-            content: "🗑️ ";
+            content: "🗑️";
         }
-        .edit-button { 
-            background-color: rgb(255, 165, 0); 
-            color: rgb(53, 61, 62); 
-            border: 1px solid rgb(220, 140, 0);
-            margin: 5px;
+        .edit-button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            text-decoration: none;
+            cursor: pointer;
         }
         .edit-button::before {
-            content: "✏️ ";
+            content: "✏️";
         }
         .form-container { 
             border: 1px solid rgb(130, 145, 147); 
