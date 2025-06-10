@@ -68,10 +68,11 @@ def generate_next_id(entity_type_key, current_data):
             "risks_and_constraints": "RISK", "metrics_and_kpis": "KPI"
         }
         prefix = prefix_map.get(entity_type_key, entity_type_key[:3].upper())
-        return f"{prefix}001"
+        return f"{prefix}_001"
     max_num = 0
     prefix = ""
-    id_pattern = re.compile(r"([a-zA-Z]+)(\d+)")
+    # Updated regex to optionally match an underscore between prefix and number
+    id_pattern = re.compile(r"([a-zA-Z]+)_?(\d+)")
     for item in current_data[entity_type_key]:
         item_id = item.get("id", "")
         match = id_pattern.match(item_id)
@@ -85,7 +86,7 @@ def generate_next_id(entity_type_key, current_data):
         prefix_map = {"stakeholders": "STK", "goals_and_objectives": "GOAL", "business_processes": "BP", "requirements": "REQ", "systems_and_applications": "SYS", "data_entities": "DE", "risks_and_constraints": "RISK", "metrics_and_kpis": "KPI"}
         prefix = prefix_map.get(entity_type_key, entity_type_key[:3].upper())
     next_num = max_num + 1
-    return f"{prefix}{next_num:03d}"
+    return f"{prefix}_{next_num:03d}"
 
 
 # --- NEW: RTF Generation Logic ---
