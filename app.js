@@ -102,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             // --- NEW: Conditional rendering based on entityType ---
             if (entityType === 'requirements') {
-                html += '<div id="requirements-list-view">'; // Container for list view
+                html += '<div id="requirements-card-view">'; // Container for card view
 
                 const escapeHTML = (str) => {
                     if (str === null || typeof str === 'undefined') return '';
@@ -112,31 +112,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 displayItems.forEach(item => {
                     const itemId = item.id || ''; // Ensure ID exists
                     
-                    html += `<div class="requirement-item">`;
+                    html += `<div class="requirement-card">`;
                     
-                    // Main Info Section
-                    html += `<div class="requirement-main-info">`;
-                    html += `<div class="requirement-header">`;
+                    // Card Header (ID, Description, Similarity Score)
+                    html += `<div class="card-header">`;
                     html += `<h3><span class="req-id">${escapeHTML(itemId)}</span>: ${escapeHTML(item.description)}</h3>`;
                     if (isSearchResult && typeof item.similarityScore === 'number') {
                         const score = (item.similarityScore * 100).toFixed(1);
                         html += `<span class="similarity-score-badge">Similarity: ${score}%</span>`;
                     }
-                    html += `</div>`; // end requirement-header
+                    html += `</div>`; // end card-header
 
-                    html += `<div class="requirement-meta">`;
+                    // Card Meta (Type, Priority, Version)
+                    html += `<div class="card-meta">`;
                     html += `<span><strong>Type:</strong> ${escapeHTML(item.type)}</span>`;
                     html += `<span><strong>Priority:</strong> ${escapeHTML(item.priority)}</span>`;
                     html += `<span><strong>Version:</strong> ${escapeHTML(item.version)}</span>`;
-                    html += `</div>`; // end requirement-meta
+                    html += `</div>`; // end card-meta
 
-                    html += `<div class="requirement-relations">`;
+                    // Card Relations (Goal, Process)
+                    html += `<div class="card-relations">`;
                     html += `<span><strong>Related Goal:</strong> ${escapeHTML(item.related_goal_id) || 'N/A'}</span>`;
                     html += `<span><strong>Related Process:</strong> ${escapeHTML(item.related_process_id) || 'N/A'}</span>`;
-                    html += `</div>`; // end requirement-relations
-                    html += `</div>`; // end requirement-main-info
+                    html += `</div>`; // end card-relations
 
-                    // Other Details Section
+                    // Other Details Section (collapsible or limited height might be good for cards)
                     const explicitlyHandledKeys = ['id', 'description', 'type', 'priority', 'version', 'related_goal_id', 'related_process_id', 'similarityScore'];
                     const otherDetailsKeys = Object.keys(item).filter(key => 
                         !explicitlyHandledKeys.includes(key) && 
@@ -146,14 +146,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     );
                     
                     if (otherDetailsKeys.length > 0) {
-                        html += `<div class="requirement-other-details">`;
+                        html += `<div class="card-details">`;
                         html += `<h4>Other Details:</h4><ul>`;
                         otherDetailsKeys.forEach(key => {
                             let value = item[key];
                             const label = escapeHTML(key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()));
                             if (typeof value === 'object' && value !== null) {
                                 const jsonString = JSON.stringify(value, null, 2);
-                                // Escape HTML entities in the JSON string itself to prevent XSS if rendered directly
                                 const escapedJsonString = jsonString.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
                                 value = `<pre>${escapedJsonString}</pre>`;
                             } else {
@@ -161,21 +160,21 @@ document.addEventListener('DOMContentLoaded', () => {
                             }
                             html += `<li><strong>${label}:</strong> ${value}</li>`;
                         });
-                        html += `</ul></div>`; // end requirement-other-details
+                        html += `</ul></div>`; // end card-details
                     }
 
-                    // Actions Section
-                    html += '<div class="requirement-actions actions">';
+                    // Card Actions
+                    html += '<div class="card-actions actions">';
                     if (itemId) {
                          html += `<button class="edit-button" data-entity="${entityType}" data-id="${itemId}" title="Edit" onclick="app.renderForm('${entityType}', '${itemId}')"></button>`;
                          html += `<button class="delete-button" data-entity="${entityType}" data-id="${itemId}" title="Delete" onclick="app.deleteItem('${entityType}', '${itemId}')"></button>`;
                     } else {
                          html += '<span>(No ID)</span>';
                     }
-                    html += '</div>'; // end requirement-actions
-                    html += `</div>`; // end requirement-item
+                    html += '</div>'; // end card-actions
+                    html += `</div>`; // end requirement-card
                 });
-                html += '</div>'; // end requirements-list-view
+                html += '</div>'; // end requirements-card-view
             } else {
                 // --- Existing table rendering logic for other entities ---
                 const headers = Object.keys(items[0]); // Safe, as items.length > 0 here

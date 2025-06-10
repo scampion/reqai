@@ -196,53 +196,69 @@
             content: "📥 ";
          }
 
-        /* Styles for Enhanced Requirements List View */
-        #requirements-list-view {
+        /* Styles for Requirements Card View */
+        #requirements-card-view {
+            display: flex;
+            flex-wrap: wrap; /* Allow cards to wrap to the next line */
+            gap: 20px; /* Space between cards */
+            justify-content: flex-start; /* Align cards to the start */
+        }
+
+        .requirement-card {
+            background-color: rgb(63, 71, 72);
+            border: 1px solid rgb(130, 145, 147);
+            border-radius: 8px;
+            padding: 15px;
+            width: calc((100% - 2 * 20px) / 3); /* 3 cards per row with 20px gap */
+            box-sizing: border-box; /* Include padding and border in the element's total width and height */
             display: flex;
             flex-direction: column;
-            gap: 15px; /* Space between items */
+            gap: 10px; /* Space between sections within a card */
+            min-width: 300px; /* Minimum width for smaller screens before wrapping */
         }
 
-        .requirement-item {
-            background-color: rgb(63, 71, 72); /* Slightly different from body for contrast */
-            border: 1px solid rgb(130, 145, 147);
-            border-radius: 6px;
-            padding: 15px;
-            display: flex;
-            flex-direction: column; /* Stack main info, details, actions vertically */
-            gap: 10px;
+        /* Responsive adjustments for card width */
+        @media (max-width: 1200px) {
+            .requirement-card {
+                width: calc((100% - 20px) / 2); /* 2 cards per row with 20px gap */
+            }
+        }
+        @media (max-width: 768px) {
+            .requirement-card {
+                width: 100%; /* 1 card per row */
+            }
         }
 
-        .requirement-main-info {
-            /* Contains header, meta, relations */
-        }
-
-        .requirement-header {
+        .card-header {
+            /* Similar to .requirement-header */
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            gap: 10px; /* Space between title and score badge */
-            margin-bottom: 10px;
+            gap: 10px;
+            margin-bottom: 5px; /* Reduced margin */
         }
 
-        .requirement-header h3 {
+        .card-header h3 {
             margin: 0;
-            font-family: 'Inter', sans-serif; /* Use body font for description for readability */
-            font-weight: 400; /* Normal weight */
+            font-family: 'Inter', sans-serif;
+            font-weight: 400;
             font-size: 1.1em;
-            color: rgb(230, 220, 215); /* Brighter for emphasis */
-            flex-grow: 1; /* Allow title to take available space */
+            color: rgb(230, 220, 215);
+            flex-grow: 1;
+            word-break: break-word; /* Ensure long descriptions break */
         }
 
-        .requirement-header .req-id {
-            font-family: 'Bebas Neue', sans-serif; /* Title font for ID */
+        .card-header .req-id {
+            font-family: 'Bebas Neue', sans-serif;
             font-weight: bold;
-            color: rgb(255, 200, 150); /* Accent color */
+            color: rgb(255, 200, 150);
             margin-right: 8px;
             font-size: 1.2em;
+            white-space: nowrap; /* Prevent ID from wrapping */
         }
 
         .similarity-score-badge {
+            /* Same as before */
             background-color: rgb(255, 200, 150);
             color: rgb(53, 61, 62);
             padding: 4px 8px;
@@ -250,37 +266,42 @@
             font-size: 0.85em;
             font-weight: bold;
             white-space: nowrap;
-            align-self: flex-start; /* Align with top of the header */
+            align-self: flex-start;
         }
 
-        .requirement-meta, .requirement-relations {
+        .card-meta, .card-relations {
+            /* Similar to .requirement-meta, .requirement-relations */
             display: flex;
-            flex-wrap: wrap; /* Allow wrapping if too many items */
-            gap: 10px; /* Space between meta items */
+            flex-wrap: wrap;
+            gap: 8px; /* Slightly reduced gap */
             font-size: 0.9em;
-            color: rgb(190, 180, 175); /* Softer color for secondary info */
-            margin-bottom: 8px;
+            color: rgb(190, 180, 175);
         }
 
-        .requirement-meta span, .requirement-relations span {
+        .card-meta span, .card-relations span {
+            /* Same as before */
             background-color: rgb(70, 80, 82);
             padding: 4px 8px;
             border-radius: 4px;
         }
 
-        .requirement-meta strong, .requirement-relations strong {
-            color: rgb(220, 210, 205); /* Slightly brighter for labels */
+        .card-meta strong, .card-relations strong {
+            /* Same as before */
+            color: rgb(220, 210, 205);
         }
 
-        .requirement-other-details {
+        .card-details {
+            /* Similar to .requirement-other-details */
             font-size: 0.9em;
-            background-color: rgb(58, 66, 67); /* Slightly darker for details section */
+            background-color: rgb(58, 66, 67);
             padding: 10px;
             border-radius: 4px;
             border: 1px solid rgb(110, 125, 127);
+            margin-top: 5px; /* Add some space if details exist */
         }
 
-        .requirement-other-details h4 {
+        .card-details h4 {
+            /* Same as before */
             margin-top: 0;
             margin-bottom: 8px;
             font-family: 'Inter', sans-serif;
@@ -288,19 +309,22 @@
             color: rgb(220, 210, 205);
         }
 
-        .requirement-other-details ul {
+        .card-details ul {
+            /* Same as before */
             list-style: none;
             padding-left: 0;
             margin: 0;
         }
 
-        .requirement-other-details li {
+        .card-details li {
+            /* Same as before */
             margin-bottom: 5px;
-            word-break: break-word; /* Prevent long unbroken strings from overflowing */
+            word-break: break-word;
         }
-        .requirement-other-details li pre {
+        .card-details li pre {
+            /* Same as before */
             margin-top: 5px;
-            background-color: rgb(53, 61, 62); /* Match body background */
+            background-color: rgb(53, 61, 62);
             padding: 5px;
             border: 1px solid rgb(130, 145, 147);
             white-space: pre-wrap;
@@ -308,13 +332,14 @@
             color: rgb(220, 210, 205);
         }
 
-        .requirement-actions {
+        .card-actions {
+            /* Similar to .requirement-actions, but ensure it's at the bottom of the card */
             display: flex;
-            justify-content: flex-end; /* Align buttons to the right */
+            justify-content: flex-end;
             gap: 10px;
-            margin-top: 10px; /* Add some space above actions */
-            border-top: 1px solid rgb(90, 105, 107); /* Separator line */
+            margin-top: auto; /* Pushes actions to the bottom of the flex card */
             padding-top: 10px;
+            border-top: 1px solid rgb(90, 105, 107);
         }
     </style>
 </head>
