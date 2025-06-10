@@ -329,6 +329,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     fieldsHtml += `</select>`;
                 }
                 // --- End of Dropdown Logic ---
+                // --- NEW: Specific input for 'tags' on requirements ---
+                else if (key === 'tags' && entityType === 'requirements') {
+                    const tagsString = Array.isArray(currentValue) ? currentValue.join(',') : '';
+                    // Escape double quotes for the value attribute if a tag itself contains a quote.
+                    const escapedTagsString = tagsString.replace(/"/g, '&quot;');
+                    fieldsHtml += `<input type="text" id="${fieldId}" name="${key}" value="${escapedTagsString}">`;
+                    fieldsHtml += `<small>Comma-separated tags</small>`;
+                }
                 // Fallback to existing logic for other fields
                 else if (typeof currentValue === 'object' && currentValue !== null) {
                       const jsonString = JSON.stringify(currentValue, null, 2);
@@ -431,13 +439,23 @@ document.addEventListener('DOMContentLoaded', () => {
         const dataPayload = {};
 
         formData.forEach((value, key) => {
-            // Attempt to parse JSON fields (basic check for starting with { or [)
             const trimmedValue = typeof value === 'string' ? value.trim() : value;
-            // Check if the original element was a textarea suggesting JSON, or if string looks like JSON
             const element = form.elements[key];
-            const mightBeJson = (element?.tagName === 'TEXTAREA') || (typeof trimmedValue === 'string' && (trimmedValue.startsWith('{') || trimmedValue.startsWith('[')));
 
-            if (mightBeJson) {
+            // --- NEW: Specific handling for 'tags' for requirements entityType ---
+            // Note: 'entityType' is the one passed to handleFormSubmit, which is currentEntityType
+            if (key === 'tags' && entityType === 'requirements') {
+                if (typeof trimmedValue === 'string' && trimmedValue.length > 0) {
+                    dataPayload[key] = trimmedValue.split(',')
+                                          .map(tag => tag.trim())
+                                          .filter(tag => tag.length > 0); // Remove empty tags
+                } else {
+                    dataPayload[key] = []; // Send empty array if input is empty
+                }
+            }
+            // --- End of specific 'tags' handling ---
+            // Attempt to parse JSON for other fields if they look like it
+            else if ((element?.tagName === 'TEXTAREA') || (typeof trimmedValue === 'string' && (trimmedValue.startsWith('{') || trimmedValue.startsWith('[')))) {
                 try {
                     dataPayload[key] = JSON.parse(trimmedValue);
                 } catch (e) {
@@ -452,7 +470,7 @@ document.addEventListener('DOMContentLoaded', () => {
                  dataPayload[key] = null; // Or "" depending on backend expectation for empty relation
             }
             else {
-                dataPayload[key] = value;
+                dataPayload[key] = value; // Assign raw value for other input types
             }
         });
 
