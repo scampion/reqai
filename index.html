@@ -393,6 +393,57 @@
             font-style: italic;
             color: rgb(190, 180, 175);
         }
+
+        /* Styles for Version Filter List (similar to Tag Cloud) */
+        .version-list-container {
+            margin-top: 10px; /* Space below tag list */
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: rgb(70, 80, 82);
+            border: 1px solid rgb(130, 145, 147);
+            border-radius: 4px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .version-list-container strong {
+            margin-right: 10px;
+            color: rgb(220, 210, 205);
+            white-space: nowrap;
+        }
+        .version-button { /* Can reuse .tag-button styles if identical, or specialize */
+            background-color: rgb(90, 105, 107);
+            color: rgb(220, 210, 205);
+            border: 1px solid rgb(130, 145, 147);
+            padding: 5px 10px;
+            margin-right: 5px;
+            margin-bottom: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .version-button:hover {
+            background-color: rgb(130, 145, 147);
+        }
+        .version-button.active {
+            background-color: rgb(150, 200, 255); /* Different accent for active version */
+            color: rgb(53, 61, 62);
+            font-weight: bold;
+            border-color: rgb(130, 180, 255);
+        }
+        .version-button.clear-filter { /* Can reuse .tag-button.clear-filter if identical */
+            background-color: rgb(180, 170, 165);
+            color: rgb(53, 61, 62);
+            font-weight: normal;
+        }
+        .version-button.clear-filter:hover {
+            background-color: rgb(160, 150, 145);
+        }
+        .version-list-container span { /* For "No versions defined" message */
+            font-style: italic;
+            color: rgb(190, 180, 175);
+        }
     </style>
 </head>
 <body>

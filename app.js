@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentEntityType = null; // Keep track of the currently viewed entity type
     let currentDataCache = {}; // Simple cache for entity data
     let activeTagFilter = null; // NEW: To store the currently active tag filter
+    let activeVersionFilter = null; // NEW: To store the currently active version filter
 
     // --- Utility Functions ---
 
@@ -110,6 +111,35 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             tagCloudHtml += '</div>';
             html += tagCloudHtml; // Add tag cloud to the main html output
+
+            // --- NEW: Add Version Filter for Requirements ---
+            const uniqueVersions = new Set();
+            if (allRequirementsFromCache) {
+                allRequirementsFromCache.forEach(item => {
+                    if (item.version && String(item.version).trim()) {
+                        uniqueVersions.add(String(item.version).trim());
+                    }
+                });
+            }
+
+            let versionFilterHtml = '<div class="version-list-container"><strong>Filter by Version:</strong> ';
+            const sortedUniqueVersions = Array.from(uniqueVersions).sort();
+
+            if (sortedUniqueVersions.length > 0) {
+                sortedUniqueVersions.forEach(version => {
+                    const isActive = version === activeVersionFilter;
+                    const escapedVersion = escapeHTML(version);
+                    versionFilterHtml += `<button class="version-button ${isActive ? 'active' : ''}" onclick="app.applyVersionFilter('${escapedVersion}')">${escapedVersion}</button> `;
+                });
+                if (activeVersionFilter) {
+                    versionFilterHtml += `<button class="version-button clear-filter" onclick="app.clearVersionFilter()">Clear Filter (Show All)</button>`;
+                }
+            } else {
+                versionFilterHtml += '<span>No versions defined across requirements.</span>';
+            }
+            versionFilterHtml += '</div>';
+            html += versionFilterHtml; // Add version filter to the main html output
+            // --- End of NEW Version Filter ---
         }
         // --- End of NEW Tag Cloud ---
 
@@ -131,24 +161,46 @@ document.addEventListener('DOMContentLoaded', () => {
         html += `<button class="add-button" data-entity="${entityType}" onclick="app.renderForm('${entityType}')">Add New ${title.slice(0,-1)}</button>`; // Assumes plural title
 
         // --- MODIFIED: Determine actual items to display based on filters/search ---
+        // --- MODIFIED: Determine actual items to display based on filters/search ---
         let displayItems = [...items]; // Start with items passed (all items or search results)
         const isSearchResult = displayItems.length > 0 && displayItems[0].hasOwnProperty('similarityScore');
 
-        if (entityType === 'requirements' && activeTagFilter && !isSearchResult) {
-            // If a tag filter is active AND we are not currently showing search results,
-            // then filter the *original full list* of requirements by this tag.
-            displayItems = (currentDataCache['requirements'] || []).filter(
-                item => item.tags && Array.isArray(item.tags) && item.tags.map(t => String(t).trim()).includes(activeTagFilter)
-            );
+        if (entityType === 'requirements' && !isSearchResult) {
+            // If not showing search results, apply active filters (tag and/or version)
+            // Start with the full list from cache
+            let filteredItems = currentDataCache['requirements'] || [];
+
+            if (activeTagFilter) {
+                filteredItems = filteredItems.filter(
+                    item => item.tags && Array.isArray(item.tags) && item.tags.map(t => String(t).trim()).includes(activeTagFilter)
+                );
+            }
+            if (activeVersionFilter) {
+                filteredItems = filteredItems.filter(
+                    item => item.version && String(item.version).trim() === activeVersionFilter
+                );
+            }
+
+            // If any filter was active, displayItems becomes the filtered set.
+            // Otherwise, it remains the original 'items' (which is the full list if !isSearchResult).
+            if (activeTagFilter || activeVersionFilter) {
+                displayItems = filteredItems;
+            }
         }
         // Now 'displayItems' holds the correct set of items for rendering.
 
         if (!displayItems || displayItems.length === 0) {
             html += '<p>No items found.</p>';
-            if (activeTagFilter && entityType === 'requirements') {
-                html += `<p>No requirements match the tag: "${escapeHTML(activeTagFilter)}".</p>`;
-            } else if (document.getElementById('req-search-input')?.value && entityType === 'requirements') {
-                 html += '<p>Your search returned no results.</p>';
+            if (entityType === 'requirements') {
+                if (activeTagFilter && activeVersionFilter) {
+                    html += `<p>No requirements match tag "${escapeHTML(activeTagFilter)}" and version "${escapeHTML(activeVersionFilter)}".</p>`;
+                } else if (activeTagFilter) {
+                    html += `<p>No requirements match the tag: "${escapeHTML(activeTagFilter)}".</p>`;
+                } else if (activeVersionFilter) {
+                    html += `<p>No requirements match the version: "${escapeHTML(activeVersionFilter)}".</p>`;
+                } else if (document.getElementById('req-search-input')?.value) {
+                    html += '<p>Your search returned no results.</p>';
+                }
             }
         } else {
             // --- NEW: Conditional rendering based on entityType ---
@@ -804,11 +856,29 @@ document.addEventListener('DOMContentLoaded', () => {
         activeTagFilter = null;
         loadEntityList('requirements'); // Reload/re-render the list
     }
-    // --- End of Tag Filtering Functions ---
 
-    // Modify performSearch to clear activeTagFilter
+    // --- NEW: Version Filtering Functions ---
+    function applyVersionFilter(version) {
+        activeVersionFilter = version;
+        // Clear search input when applying a version filter
+        const searchInput = document.getElementById('req-search-input');
+        if (searchInput) searchInput.value = '';
+        const searchStatus = document.getElementById('req-search-status');
+        if (searchStatus) searchStatus.textContent = '';
+        
+        loadEntityList('requirements'); // Reload/re-render the list which will apply the filter
+    }
+
+    function clearVersionFilter() {
+        activeVersionFilter = null;
+        loadEntityList('requirements'); // Reload/re-render the list
+    }
+    // --- End of Version Filtering Functions ---
+
+    // Modify performSearch to clear activeTagFilter and activeVersionFilter
     async function performSearch() {
         activeTagFilter = null; // Clear any active tag filter when performing a search
+        activeVersionFilter = null; // Clear any active version filter
 
         const searchInput = document.getElementById('req-search-input');
         const searchTerm = searchInput?.value.trim();
@@ -868,8 +938,10 @@ document.addEventListener('DOMContentLoaded', () => {
         deleteItem,
         loadEntityList,
         performSearch,
-        applyTagFilter, // NEW
-        clearTagFilter  // NEW
+        applyTagFilter,
+        clearTagFilter,
+        applyVersionFilter, // NEW
+        clearVersionFilter  // NEW
     };
 
     // Start the application
