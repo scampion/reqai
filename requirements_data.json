@@ -98,6 +98,21 @@
       "related_goal_id": "GOAL003",
       "related_process_id": "BP003",
       "id": "REQ008"
+    },
+    {
+      "description": "Test2",
+      "type": "functional",
+      "priority": "medium",
+      "source": "STK002",
+      "related_goal_id": null,
+      "related_process_id": null,
+      "version": "",
+      "tags": [
+        "test toto",
+        "test",
+        "mami"
+      ],
+      "id": "REQ009"
     }
   ],
   "systems_and_applications": [
