@@ -100,63 +100,133 @@ document.addEventListener('DOMContentLoaded', () => {
                  html += '<p>Your search returned no results.</p>';
             }
         } else {
-            // Dynamically get headers from the keys of the first item
-            const headers = Object.keys(items[0]);
-            html += '<table><thead><tr>';
-            // --- NEW: Add Similarity Score header if it's search results ---
-            if (isSearchResult) {
-                 html += `<th>Similarity</th>`;
-            }
-            headers.forEach(header => {
-                 // Don't show the similarityScore as a regular column
-                 if (header !== 'similarityScore') {
-                     html += `<th>${header.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</th>`;
-                 }
-            });
-            html += '<th>Actions</th>'; // Actions column header
-            html += '</tr></thead><tbody>';
+            // --- NEW: Conditional rendering based on entityType ---
+            if (entityType === 'requirements') {
+                html += '<div id="requirements-list-view">'; // Container for list view
 
-            displayItems.forEach(item => {
-                html += '<tr>';
-                const itemId = item.id || ''; // Ensure ID exists
+                const escapeHTML = (str) => {
+                    if (str === null || typeof str === 'undefined') return '';
+                    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                };
 
-                // --- NEW: Add Similarity Score cell ---
-                if (isSearchResult) {
-                    const score = (item.similarityScore * 100).toFixed(1); // Percentage
-                    html += `<td style="text-align: right; font-weight: bold;">${score}%</td>`;
-                }
-
-                headers.forEach(header => {
-                     // Don't show the similarityScore as a regular column value
-                     if (header === 'similarityScore') return;
-
-                    let value = item[header];
-                    // Display complex types (arrays/objects) as formatted JSON in <pre>
-                    if (typeof value === 'object' && value !== null) {
-                        // Basic escaping for HTML within <pre>
-                        const jsonString = JSON.stringify(value, null, 2)
-                            .replace(/&/g, '&amp;')
-                            .replace(/</g, '&lt;')
-                            .replace(/>/g, '&gt;');
-                         value = `<pre>${jsonString}</pre>`;
-                    } else {
-                         // Basic HTML escaping for simple values
-                         value = String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                displayItems.forEach(item => {
+                    const itemId = item.id || ''; // Ensure ID exists
+                    
+                    html += `<div class="requirement-item">`;
+                    
+                    // Main Info Section
+                    html += `<div class="requirement-main-info">`;
+                    html += `<div class="requirement-header">`;
+                    html += `<h3><span class="req-id">${escapeHTML(itemId)}</span>: ${escapeHTML(item.description)}</h3>`;
+                    if (isSearchResult && typeof item.similarityScore === 'number') {
+                        const score = (item.similarityScore * 100).toFixed(1);
+                        html += `<span class="similarity-score-badge">Similarity: ${score}%</span>`;
                     }
-                    html += `<td>${value}</td>`;
-                });
-                // Add Edit and Delete buttons with data attributes
-                html += '<td class="actions">';
-                if (itemId) {
-                     html += `<button class="edit-button" data-entity="${entityType}" data-id="${itemId}" title="Edit" onclick="app.renderForm('${entityType}', '${itemId}')"></button>`;
-                     html += `<button class="delete-button" data-entity="${entityType}" data-id="${itemId}" title="Delete" onclick="app.deleteItem('${entityType}', '${itemId}')"></button>`;
-                } else {
-                     html += '<span>(No ID)</span>';
-                }
-                html += '</td></tr>';
-            });
+                    html += `</div>`; // end requirement-header
 
-            html += '</tbody></table>';
+                    html += `<div class="requirement-meta">`;
+                    html += `<span><strong>Type:</strong> ${escapeHTML(item.type)}</span>`;
+                    html += `<span><strong>Priority:</strong> ${escapeHTML(item.priority)}</span>`;
+                    html += `<span><strong>Version:</strong> ${escapeHTML(item.version)}</span>`;
+                    html += `</div>`; // end requirement-meta
+
+                    html += `<div class="requirement-relations">`;
+                    html += `<span><strong>Related Goal:</strong> ${escapeHTML(item.related_goal_id) || 'N/A'}</span>`;
+                    html += `<span><strong>Related Process:</strong> ${escapeHTML(item.related_process_id) || 'N/A'}</span>`;
+                    html += `</div>`; // end requirement-relations
+                    html += `</div>`; // end requirement-main-info
+
+                    // Other Details Section
+                    const explicitlyHandledKeys = ['id', 'description', 'type', 'priority', 'version', 'related_goal_id', 'related_process_id', 'similarityScore'];
+                    const otherDetailsKeys = Object.keys(item).filter(key => 
+                        !explicitlyHandledKeys.includes(key) && 
+                        item[key] !== null && 
+                        typeof item[key] !== 'undefined' && 
+                        String(item[key]).trim() !== ''
+                    );
+                    
+                    if (otherDetailsKeys.length > 0) {
+                        html += `<div class="requirement-other-details">`;
+                        html += `<h4>Other Details:</h4><ul>`;
+                        otherDetailsKeys.forEach(key => {
+                            let value = item[key];
+                            const label = escapeHTML(key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()));
+                            if (typeof value === 'object' && value !== null) {
+                                const jsonString = JSON.stringify(value, null, 2);
+                                // Escape HTML entities in the JSON string itself to prevent XSS if rendered directly
+                                const escapedJsonString = jsonString.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                                value = `<pre>${escapedJsonString}</pre>`;
+                            } else {
+                                value = escapeHTML(value);
+                            }
+                            html += `<li><strong>${label}:</strong> ${value}</li>`;
+                        });
+                        html += `</ul></div>`; // end requirement-other-details
+                    }
+
+                    // Actions Section
+                    html += '<div class="requirement-actions actions">';
+                    if (itemId) {
+                         html += `<button class="edit-button" data-entity="${entityType}" data-id="${itemId}" title="Edit" onclick="app.renderForm('${entityType}', '${itemId}')"></button>`;
+                         html += `<button class="delete-button" data-entity="${entityType}" data-id="${itemId}" title="Delete" onclick="app.deleteItem('${entityType}', '${itemId}')"></button>`;
+                    } else {
+                         html += '<span>(No ID)</span>';
+                    }
+                    html += '</div>'; // end requirement-actions
+                    html += `</div>`; // end requirement-item
+                });
+                html += '</div>'; // end requirements-list-view
+            } else {
+                // --- Existing table rendering logic for other entities ---
+                const headers = Object.keys(items[0]); // Safe, as items.length > 0 here
+                html += '<table><thead><tr>';
+                // --- Add Similarity Score header if it's search results (though search is mainly for reqs) ---
+                if (isSearchResult && items[0].hasOwnProperty('similarityScore')) { // Check if first item has score
+                     html += `<th>Similarity</th>`;
+                }
+                headers.forEach(header => {
+                     if (header !== 'similarityScore') { // Don't show similarityScore as a regular column
+                         html += `<th>${header.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</th>`;
+                     }
+                });
+                html += '<th>Actions</th>';
+                html += '</tr></thead><tbody>';
+
+                displayItems.forEach(item => {
+                    html += '<tr>';
+                    const itemId = item.id || '';
+
+                    if (isSearchResult && typeof item.similarityScore === 'number') {
+                        const score = (item.similarityScore * 100).toFixed(1);
+                        html += `<td style="text-align: right; font-weight: bold;">${score}%</td>`;
+                    }
+
+                    headers.forEach(header => {
+                         if (header === 'similarityScore') return;
+
+                        let value = item[header];
+                        if (typeof value === 'object' && value !== null) {
+                            const jsonString = JSON.stringify(value, null, 2)
+                                .replace(/&/g, '&amp;')
+                                .replace(/</g, '&lt;')
+                                .replace(/>/g, '&gt;');
+                             value = `<pre>${jsonString}</pre>`;
+                        } else {
+                             value = String(value == null ? '' : value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                        }
+                        html += `<td>${value}</td>`;
+                    });
+                    html += '<td class="actions">';
+                    if (itemId) {
+                         html += `<button class="edit-button" data-entity="${entityType}" data-id="${itemId}" title="Edit" onclick="app.renderForm('${entityType}', '${itemId}')"></button>`;
+                         html += `<button class="delete-button" data-entity="${entityType}" data-id="${itemId}" title="Delete" onclick="app.deleteItem('${entityType}', '${itemId}')"></button>`;
+                    } else {
+                         html += '<span>(No ID)</span>';
+                    }
+                    html += '</td></tr>';
+                });
+                html += '</tbody></table>';
+            }
         }
         contentArea.innerHTML = html;
     }

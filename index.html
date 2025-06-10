@@ -195,6 +195,127 @@
          .download-button::before {
             content: "📥 ";
          }
+
+        /* Styles for Enhanced Requirements List View */
+        #requirements-list-view {
+            display: flex;
+            flex-direction: column;
+            gap: 15px; /* Space between items */
+        }
+
+        .requirement-item {
+            background-color: rgb(63, 71, 72); /* Slightly different from body for contrast */
+            border: 1px solid rgb(130, 145, 147);
+            border-radius: 6px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column; /* Stack main info, details, actions vertically */
+            gap: 10px;
+        }
+
+        .requirement-main-info {
+            /* Contains header, meta, relations */
+        }
+
+        .requirement-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px; /* Space between title and score badge */
+            margin-bottom: 10px;
+        }
+
+        .requirement-header h3 {
+            margin: 0;
+            font-family: 'Inter', sans-serif; /* Use body font for description for readability */
+            font-weight: 400; /* Normal weight */
+            font-size: 1.1em;
+            color: rgb(230, 220, 215); /* Brighter for emphasis */
+            flex-grow: 1; /* Allow title to take available space */
+        }
+
+        .requirement-header .req-id {
+            font-family: 'Bebas Neue', sans-serif; /* Title font for ID */
+            font-weight: bold;
+            color: rgb(255, 200, 150); /* Accent color */
+            margin-right: 8px;
+            font-size: 1.2em;
+        }
+
+        .similarity-score-badge {
+            background-color: rgb(255, 200, 150);
+            color: rgb(53, 61, 62);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            font-weight: bold;
+            white-space: nowrap;
+            align-self: flex-start; /* Align with top of the header */
+        }
+
+        .requirement-meta, .requirement-relations {
+            display: flex;
+            flex-wrap: wrap; /* Allow wrapping if too many items */
+            gap: 10px; /* Space between meta items */
+            font-size: 0.9em;
+            color: rgb(190, 180, 175); /* Softer color for secondary info */
+            margin-bottom: 8px;
+        }
+
+        .requirement-meta span, .requirement-relations span {
+            background-color: rgb(70, 80, 82);
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .requirement-meta strong, .requirement-relations strong {
+            color: rgb(220, 210, 205); /* Slightly brighter for labels */
+        }
+
+        .requirement-other-details {
+            font-size: 0.9em;
+            background-color: rgb(58, 66, 67); /* Slightly darker for details section */
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid rgb(110, 125, 127);
+        }
+
+        .requirement-other-details h4 {
+            margin-top: 0;
+            margin-bottom: 8px;
+            font-family: 'Inter', sans-serif;
+            font-weight: bold;
+            color: rgb(220, 210, 205);
+        }
+
+        .requirement-other-details ul {
+            list-style: none;
+            padding-left: 0;
+            margin: 0;
+        }
+
+        .requirement-other-details li {
+            margin-bottom: 5px;
+            word-break: break-word; /* Prevent long unbroken strings from overflowing */
+        }
+        .requirement-other-details li pre {
+            margin-top: 5px;
+            background-color: rgb(53, 61, 62); /* Match body background */
+            padding: 5px;
+            border: 1px solid rgb(130, 145, 147);
+            white-space: pre-wrap;
+            word-break: break-all;
+            color: rgb(220, 210, 205);
+        }
+
+        .requirement-actions {
+            display: flex;
+            justify-content: flex-end; /* Align buttons to the right */
+            gap: 10px;
+            margin-top: 10px; /* Add some space above actions */
+            border-top: 1px solid rgb(90, 105, 107); /* Separator line */
+            padding-top: 10px;
+        }
     </style>
 </head>
 <body>
