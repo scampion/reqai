@@ -400,9 +400,17 @@ document.addEventListener('DOMContentLoaded', () => {
              }
 
              // Determine field keys: Use itemData keys, exclude 'id' for display
-             const keys = Object.keys(itemData).filter(key => !(isEdit && key === 'id'));
+             let fieldKeys = Object.keys(itemData).filter(key => !(isEdit && key === 'id'));
 
-             keys.forEach(key => {
+             // For requirements, ensure 'name' and 'author' are at the beginning
+             if (entityType === 'requirements') {
+                 const preferredOrder = ['name', 'author'];
+                 const orderedKeys = preferredOrder.filter(k => fieldKeys.includes(k));
+                 const remainingKeys = fieldKeys.filter(k => !preferredOrder.includes(k));
+                 fieldKeys = [...orderedKeys, ...remainingKeys];
+             }
+
+             fieldKeys.forEach(key => {
                  const currentValue = itemData[key]; // Value from the item being edited or default
                  const label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
                  const fieldId = `field_${key}`;
