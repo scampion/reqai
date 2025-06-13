@@ -11,6 +11,7 @@ import threading # For locking file access
 from http import HTTPStatus # Use standard HTTP status codes
 from datetime import datetime # For timestamp in filename
 import time # For timezone info (though datetime handles it better)
+import shutil # For file copying (backup)
 
 # --- Configuration ---
 HOST = "localhost"
@@ -47,6 +48,24 @@ def load_data():
 def save_data(data_to_save):
     # ... (keep existing save_data function) ...
     with data_lock:
+        # --- Backup Logic ---
+        try:
+            now = datetime.now()
+            backup_file_name = f"requirements_data.{now.strftime('%Y-%m-%d-%H')}.json"
+            
+            if not os.path.exists(backup_file_name):
+                if os.path.exists(DATA_FILE):
+                    shutil.copy2(DATA_FILE, backup_file_name) # copy2 preserves metadata
+                    print(f"Backup created: {backup_file_name}")
+                # else:
+                    # print(f"Skipping backup: {DATA_FILE} does not exist yet.") # Optional: log if source doesn't exist
+            # else:
+                # print(f"Backup for hour {now.strftime('%Y-%m-%d-%H')} already exists: {backup_file_name}") # Optional: log if backup exists
+        except Exception as e:
+            print(f"Error during backup creation: {e}")
+            # Decide if a backup error should prevent saving. For now, it won't.
+
+        # --- Original Save Logic ---
         try:
             with open(DATA_FILE, 'w', encoding='utf-8') as f:
                 json.dump(data_to_save, f, indent=2, ensure_ascii=False)
