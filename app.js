@@ -232,7 +232,23 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Card Meta (Type, Priority, Version, Tags, Author)
                     html += `<div class="card-meta">`;
                     html += `<span><strong>Type:</strong> ${escapeHTML(item.type)}</span>`;
-                    html += `<span><strong>Priority:</strong> ${escapeHTML(item.priority)}</span>`;
+
+                    // --- Display Priority with Emoji ---
+                    let priorityDisplay = escapeHTML(item.priority);
+                    if (item.priority) {
+                        const priorityEmojis = {
+                            "Must Have": "⚠️",
+                            "High Priority": "⭐",
+                            "Medium Priority": "⚪",
+                            "Low Priority": "➖",
+                            "Cherry on the Cake": "✨"
+                        };
+                        const emoji = priorityEmojis[item.priority] || "";
+                        priorityDisplay = `${emoji} ${escapeHTML(item.priority)}`;
+                    }
+                    html += `<span><strong>Priority:</strong> ${priorityDisplay}</span>`;
+                    // --- End Display Priority with Emoji ---
+
                     html += `<span><strong>Version:</strong> ${escapeHTML(item.version)}</span>`;
                     html += `<span><strong>Author:</strong> ${escapeHTML(item.author)}</span>`;
                     if (item.tags && Array.isArray(item.tags) && item.tags.length > 0) {
