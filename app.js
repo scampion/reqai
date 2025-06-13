@@ -251,11 +251,22 @@ document.addEventListener('DOMContentLoaded', () => {
                         } else if (typeof item.related_goal_id === 'string' && item.related_goal_id.trim() !== '') { // Handle old string data
                             goalDisplay = escapeHTML(item.related_goal_id);
                         } else if (Array.isArray(item.related_goal_id) && item.related_goal_id.length === 0) {
-                            goalDisplay = 'None'; // Explicitly show "None" if array is empty
+                            goalDisplay = 'None';
                         }
                     }
                     html += `<span><strong>Related Goal(s):</strong> ${goalDisplay}</span>`;
-                    html += `<span><strong>Related Process:</strong> ${escapeHTML(item.related_process_id) || 'N/A'}</span>`;
+
+                    let processDisplay = 'N/A';
+                    if (item.related_process_id) {
+                        if (Array.isArray(item.related_process_id) && item.related_process_id.length > 0) {
+                            processDisplay = escapeHTML(item.related_process_id.join(', '));
+                        } else if (typeof item.related_process_id === 'string' && item.related_process_id.trim() !== '') { // Handle old string data
+                            processDisplay = escapeHTML(item.related_process_id);
+                        } else if (Array.isArray(item.related_process_id) && item.related_process_id.length === 0) {
+                            processDisplay = 'None';
+                        }
+                    }
+                    html += `<span><strong>Related Process(es):</strong> ${processDisplay}</span>`;
                     html += `</div>`; // end card-relations
 
                     // Other Details Section (collapsible or limited height might be good for cards)
@@ -442,18 +453,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     fieldsHtml += `</select>`;
                     fieldsHtml += `<small>Maintenez Ctrl/Cmd enfoncé pour sélectionner plusieurs objectifs.</small>`;
                 }
-                // --- Dropdown for Related Process ID ---
+                // --- Dropdown for Related Process ID (Multiple Select) ---
                 else if (key === 'related_process_id' && entityType === 'requirements' && related?.processIds?.length > 0) {
-                    fieldsHtml += `<select id="${fieldId}" name="${key}">`;
-                    fieldsHtml += `<option value="">-- Select Process --</option>`; // Default empty option
+                    fieldsHtml += `<select id="${fieldId}" name="${key}" multiple size="5">`; // Added multiple and size
                     const processes = currentDataCache['business_processes'] || [];
+                    // Ensure currentValue is an array for checking inclusion
+                    const currentSelectedProcessIds = Array.isArray(currentValue) ? currentValue : (currentValue ? [String(currentValue)] : []);
                     processes.forEach(process => {
                         if (!process.id) return;
-                        const selectedAttr = (process.id === currentValue) ? ' selected' : '';
+                        const selectedAttr = currentSelectedProcessIds.includes(String(process.id)) ? ' selected' : '';
                         const description = process.description ? process.description.substring(0, 50) + (process.description.length > 50 ? '...' : '') : '';
                         fieldsHtml += `<option value="${process.id}"${selectedAttr}>${process.id} - ${description}</option>`;
                     });
                     fieldsHtml += `</select>`;
+                    fieldsHtml += `<small>Maintenez Ctrl/Cmd enfoncé pour sélectionner plusieurs processus.</small>`;
                 }
                 // --- End of Dropdown Logic ---
                 // --- NEW: Specific input for 'tags' on requirements ---
@@ -542,7 +555,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             if (key === 'related_goal_id') {
                                 itemDataForForm[key] = []; // related_goal_id is now an array for multi-select
                             } else if (key === 'related_process_id') {
-                                itemDataForForm[key] = '';
+                                itemDataForForm[key] = []; // related_process_id is now an array for multi-select
                             } else if (key === 'tags' && entityType === 'requirements') { // Initialize tags as an empty array for new requirements
                                  itemDataForForm[key] = [];
                             }
@@ -554,7 +567,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
 
-            // Ensure 'name', 'author', 'tags', 'related_goal_id' fields are present and correctly typed for editing requirements
+            // Ensure 'name', 'author', 'tags', 'related_goal_id', 'related_process_id' fields are present and correctly typed for editing requirements
             if (isEdit && entityType === 'requirements') {
                 if (typeof itemDataForForm.name === 'undefined') {
                     itemDataForForm.name = ''; 
@@ -569,8 +582,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (typeof itemDataForForm.related_goal_id === 'undefined') {
                     itemDataForForm.related_goal_id = [];
                 } else if (!Array.isArray(itemDataForForm.related_goal_id)) {
-                    // Convert to array if it's a single string (e.g., from old data) or null
                     itemDataForForm.related_goal_id = itemDataForForm.related_goal_id ? [String(itemDataForForm.related_goal_id)] : [];
+                }
+                // Ensure related_process_id is an array
+                if (typeof itemDataForForm.related_process_id === 'undefined') {
+                    itemDataForForm.related_process_id = [];
+                } else if (!Array.isArray(itemDataForForm.related_process_id)) {
+                    itemDataForForm.related_process_id = itemDataForForm.related_process_id ? [String(itemDataForForm.related_process_id)] : [];
                 }
             }
 
@@ -599,8 +617,12 @@ document.addEventListener('DOMContentLoaded', () => {
         formKeys.forEach(key => {
             const element = form.elements[key]; // Get the form element
 
-            if (key === 'related_goal_id' && entityType === 'requirements' && element && element.tagName === 'SELECT' && element.multiple) {
-                dataPayload[key] = formData.getAll(key); // Gets an array of selected values. Empty array if none selected.
+            if (entityType === 'requirements' && element && element.tagName === 'SELECT' && element.multiple) {
+                // Generic handling for all multiple select fields for requirements
+                if (key === 'related_goal_id' || key === 'related_process_id') {
+                    dataPayload[key] = formData.getAll(key); // Gets an array of selected values. Empty array if none selected.
+                }
+                // Add other multi-select keys here if any in the future
             } else if (key === 'tags' && entityType === 'requirements') {
                 const value = formData.get(key); // Tags are a single input field, comma-separated string
                 const trimmedValue = typeof value === 'string' ? value.trim() : '';
