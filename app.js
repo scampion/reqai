@@ -318,6 +318,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     html += '<div class="card-actions actions">';
                     if (itemId) {
                          html += `<button class="edit-button" data-entity="${entityType}" data-id="${itemId}" title="Edit" onclick="app.renderForm('${entityType}', '${itemId}')"></button>`;
+                         html += `<button class="duplicate-button" data-entity="${entityType}" data-id="${itemId}" title="Duplicate" onclick="app.duplicateItem('${entityType}', '${itemId}')"></button>`; // New Duplicate Button
                          html += `<button class="delete-button" data-entity="${entityType}" data-id="${itemId}" title="Delete" onclick="app.deleteItem('${entityType}', '${itemId}')"></button>`;
                     } else {
                          html += '<span>(No ID)</span>';
@@ -992,6 +993,56 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     // --- End of Version Filtering Functions ---
 
+    // --- NEW: Duplicate Item Function ---
+    async function duplicateItem(entityType, itemId) {
+        if (entityType !== 'requirements') {
+            showMessage('Duplication is only supported for requirements.', true);
+            return;
+        }
+
+        if (!confirm(`Are you sure you want to duplicate requirement ${itemId}? A new requirement will be created based on this one.`)) {
+            return;
+        }
+
+        try {
+            showMessage('Duplicating item...');
+            // 1. Fetch the original item's data
+            const originalItem = await fetchAPI(`/entities/${entityType}/${itemId}`);
+            if (!originalItem) {
+                throw new Error(`Failed to fetch original item ${itemId} for duplication.`);
+            }
+
+            // 2. Prepare the new item data
+            const newItemData = { ...originalItem };
+            delete newItemData.id; // Remove original ID, backend will assign a new one
+            
+            // Modify the name to indicate it's a copy
+            newItemData.name = newItemData.name ? `${newItemData.name} - Copy` : "Unnamed Requirement - Copy";
+            
+            // Optionally, reset or modify other fields if needed, e.g., version, author for the new copy
+            // newItemData.version = "1.0"; // Example: reset version for the copy
+            // newItemData.author = "Current User"; // Example: set new author
+
+            // 3. Create the new item via POST request
+            const duplicatedItem = await fetchAPI(`/entities/${entityType}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newItemData)
+            });
+
+            showMessage(`Requirement ${itemId} duplicated successfully as ${duplicatedItem.id}.`, false);
+            
+            // 4. Clear cache and reload list to show the new item
+            delete currentDataCache[entityType];
+            loadEntityList(entityType);
+
+        } catch (error) {
+            console.error(`Error duplicating item ${itemId}:`, error);
+            showMessage(`Failed to duplicate item ${itemId}. ${error.message}`, true);
+        }
+    }
+    // --- End of Duplicate Item Function ---
+
     // Modify performSearch to clear activeTagFilter and activeVersionFilter
     async function performSearch() {
         activeTagFilter = null; // Clear any active tag filter when performing a search
@@ -1057,8 +1108,9 @@ document.addEventListener('DOMContentLoaded', () => {
         performSearch,
         applyTagFilter,
         clearTagFilter,
-        applyVersionFilter, // NEW
-        clearVersionFilter  // NEW
+        applyVersionFilter,
+        clearVersionFilter,
+        duplicateItem       // NEW: Expose duplicateItem
     };
 
     // Start the application
