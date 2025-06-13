@@ -468,6 +468,23 @@ document.addEventListener('DOMContentLoaded', () => {
                     fieldsHtml += `</select>`;
                     fieldsHtml += `<small>Maintenez Ctrl/Cmd enfoncé pour sélectionner plusieurs processus.</small>`;
                 }
+                // --- NEW: Dropdown for 'priority' for requirements ---
+                else if (key === 'priority' && entityType === 'requirements') {
+                    const priorityOptions = [
+                        { value: "", display: "-- Select Priority --" },
+                        { value: "Must Have", display: "⚠️ Must Have" },
+                        { value: "High Priority", display: "⭐ High Priority" },
+                        { value: "Medium Priority", display: "⚪ Medium Priority" },
+                        { value: "Low Priority", display: "➖ Low Priority" },
+                        { value: "Cherry on the Cake", display: "✨ Cherry on the Cake" }
+                    ];
+                    fieldsHtml += `<select id="${fieldId}" name="${key}">`;
+                    priorityOptions.forEach(opt => {
+                        const selectedAttr = (opt.value === currentValue) ? ' selected' : '';
+                        fieldsHtml += `<option value="${escapeHTML(opt.value)}"${selectedAttr}>${escapeHTML(opt.display)}</option>`;
+                    });
+                    fieldsHtml += `</select>`;
+                }
                 // --- End of Dropdown Logic ---
                 // --- NEW: Specific input for 'tags' on requirements ---
                 else if (key === 'tags' && entityType === 'requirements') {
@@ -556,6 +573,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                 itemDataForForm[key] = []; // related_goal_id is now an array for multi-select
                             } else if (key === 'related_process_id') {
                                 itemDataForForm[key] = []; // related_process_id is now an array for multi-select
+                            } else if (key === 'priority' && entityType === 'requirements') {
+                                itemDataForForm[key] = ''; // Default to empty for "Select Priority"
                             } else if (key === 'tags' && entityType === 'requirements') { // Initialize tags as an empty array for new requirements
                                  itemDataForForm[key] = [];
                             }
