@@ -222,6 +222,7 @@ class APIRequestHandler(http.server.BaseHTTPRequestHandler):
         """Handles GET requests for listing, retrieving, exporting, and serving frontend."""
         parsed_path = urlparse(self.path)
         path = parsed_path.path
+        print(f"DEBUG: do_GET received path: {path}") # Ajout pour le débogage
         path_parts = path.strip('/').split('/')
 
         # --- NEW: Endpoint: /api/export/rtf ---
@@ -246,8 +247,10 @@ class APIRequestHandler(http.server.BaseHTTPRequestHandler):
 
         # Endpoint: /api/entity_types (List all types)
         if path == "/api/entity_types":
+             print(f"DEBUG: Handling /api/entity_types") # Ajout pour le débogage
              current_data = load_data()
              entity_types = list(current_data.keys())
+             print(f"DEBUG: Entity types to send: {entity_types}") # Ajout pour le débogage
              self.send_json_response(entity_types)
              return
 
