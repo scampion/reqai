@@ -92,7 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ensureExtractorInitializedAndIndexRequirements(items);
         }
         // --- End of NEW Search UI ---
-        
+
         // --- NEW: Add Tag Cloud for Requirements ---
         if (entityType === 'requirements') {
             const allRequirementsFromCache = currentDataCache['requirements'] || items; // Use full cache for comprehensive tag cloud
