@@ -525,6 +525,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 });
             }
+
+            // Ensure 'author' field is present for editing requirements, even if not set on the item
+            if (isEdit && entityType === 'requirements') {
+                if (typeof itemDataForForm.author === 'undefined') {
+                    itemDataForForm.author = ''; // Default to empty string if not present
+                }
+            }
+
             // --- Pass relatedData to buildFormFields ---
             buildFormFields(itemDataForForm, relatedData);
 
