@@ -219,16 +219,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     html += `<div class="requirement-card">`;
                     
-                    // Card Header (ID, Description, Similarity Score)
+                    // Card Header (ID, Name, Description, Similarity Score)
                     html += `<div class="card-header">`;
-                    html += `<h3><span class="req-id">${escapeHTML(itemId)}</span>: ${escapeHTML(item.description)}</h3>`;
+                    html += `<h3><span class="req-id">${escapeHTML(itemId)}</span>: ${escapeHTML(item.name)}</h3>`;
+                    html += `<p class="requirement-description">${escapeHTML(item.description)}</p>`;
                     if (isSearchResult && typeof item.similarityScore === 'number') {
                         const score = (item.similarityScore * 100).toFixed(1);
                         html += `<span class="similarity-score-badge">Similarity: ${score}%</span>`;
                     }
                     html += `</div>`; // end card-header
 
-                    // Card Meta (Type, Priority, Version, Tags)
+                    // Card Meta (Type, Priority, Version, Tags, Author)
                     html += `<div class="card-meta">`;
                     html += `<span><strong>Type:</strong> ${escapeHTML(item.type)}</span>`;
                     html += `<span><strong>Priority:</strong> ${escapeHTML(item.priority)}</span>`;
@@ -248,7 +249,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     html += `</div>`; // end card-relations
 
                     // Other Details Section (collapsible or limited height might be good for cards)
-                    const explicitlyHandledKeys = ['id', 'description', 'type', 'priority', 'version', 'tags', 'author', 'related_goal_id', 'related_process_id', 'similarityScore'];
+                    const explicitlyHandledKeys = ['id', 'name', 'description', 'type', 'priority', 'version', 'tags', 'author', 'related_goal_id', 'related_process_id', 'similarityScore'];
                     const otherDetailsKeys = Object.keys(item).filter(key => 
                         !explicitlyHandledKeys.includes(key) && 
                         item[key] !== null && 
@@ -495,7 +496,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 let keysToUse = Object.keys(sampleItem);
                 // Ensure essential requirement fields exist even if sample is empty
                  if(entityType === 'requirements') {
-                     const requiredKeys = ['description', 'type', 'priority', 'related_goal_id', 'related_process_id', 'version', 'tags', 'author'];
+                     const requiredKeys = ['name', 'description', 'type', 'priority', 'related_goal_id', 'related_process_id', 'version', 'tags', 'author'];
                      requiredKeys.forEach(reqKey => {
                          if (!keysToUse.includes(reqKey)) {
                              keysToUse.push(reqKey);
@@ -526,8 +527,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
 
-            // Ensure 'author' field is present for editing requirements, even if not set on the item
+            // Ensure 'name', 'author', 'tags' fields are present for editing requirements, even if not set on the item
             if (isEdit && entityType === 'requirements') {
+                if (typeof itemDataForForm.name === 'undefined') {
+                    itemDataForForm.name = ''; // Default to empty string if not present
+                }
                 if (typeof itemDataForForm.author === 'undefined') {
                     itemDataForForm.author = ''; // Default to empty string if not present
                 }
