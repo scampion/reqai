@@ -452,6 +452,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     fieldsHtml += `<input type="text" id="${fieldId}" name="${key}" value="${escapedTagsString}">`;
                     fieldsHtml += `<small>Comma-separated tags</small>`;
                 }
+                // --- NEW: Textarea for 'description' field ---
+                else if (key === 'description') {
+                    const escapedValue = String(currentValue ?? '').replace(/</g, '&lt;').replace(/>/g, '&gt;'); // Basic escaping for textarea
+                    fieldsHtml += `<textarea id="${fieldId}" name="${key}" rows="5">${escapedValue}</textarea>`;
+                }
                 // Fallback to existing logic for other fields
                 else if (typeof currentValue === 'object' && currentValue !== null) {
                       const jsonString = JSON.stringify(currentValue, null, 2);
