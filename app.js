@@ -233,6 +233,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     html += `<span><strong>Type:</strong> ${escapeHTML(item.type)}</span>`;
                     html += `<span><strong>Priority:</strong> ${escapeHTML(item.priority)}</span>`;
                     html += `<span><strong>Version:</strong> ${escapeHTML(item.version)}</span>`;
+                    html += `<span><strong>Author:</strong> ${escapeHTML(item.author)}</span>`;
                     if (item.tags && Array.isArray(item.tags) && item.tags.length > 0) {
                         html += `<span><strong>Tags:</strong> ${escapeHTML(item.tags.join(', '))}</span>`;
                     } else if (item.tags) { // If tags exist but not an array or empty, display as is (might be from old data)
@@ -247,7 +248,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     html += `</div>`; // end card-relations
 
                     // Other Details Section (collapsible or limited height might be good for cards)
-                    const explicitlyHandledKeys = ['id', 'description', 'type', 'priority', 'version', 'tags', 'related_goal_id', 'related_process_id', 'similarityScore'];
+                    const explicitlyHandledKeys = ['id', 'description', 'type', 'priority', 'version', 'tags', 'author', 'related_goal_id', 'related_process_id', 'similarityScore'];
                     const otherDetailsKeys = Object.keys(item).filter(key => 
                         !explicitlyHandledKeys.includes(key) && 
                         item[key] !== null && 
@@ -494,7 +495,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 let keysToUse = Object.keys(sampleItem);
                 // Ensure essential requirement fields exist even if sample is empty
                  if(entityType === 'requirements') {
-                     const requiredKeys = ['description', 'type', 'priority', 'related_goal_id', 'related_process_id', 'version', 'tags'];
+                     const requiredKeys = ['description', 'type', 'priority', 'related_goal_id', 'related_process_id', 'version', 'tags', 'author'];
                      requiredKeys.forEach(reqKey => {
                          if (!keysToUse.includes(reqKey)) {
                              keysToUse.push(reqKey);
