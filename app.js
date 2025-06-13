@@ -531,6 +531,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (typeof itemDataForForm.author === 'undefined') {
                     itemDataForForm.author = ''; // Default to empty string if not present
                 }
+                // Ensure 'tags' field is present for editing requirements, defaulting to an empty array
+                if (typeof itemDataForForm.tags === 'undefined') {
+                    itemDataForForm.tags = []; // Default to empty array if not present
+                }
             }
 
             // --- Pass relatedData to buildFormFields ---
