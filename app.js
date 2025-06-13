@@ -244,7 +244,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     // Card Relations (Goal, Process)
                     html += `<div class="card-relations">`;
-                    html += `<span><strong>Related Goal:</strong> ${escapeHTML(item.related_goal_id) || 'N/A'}</span>`;
+                    let goalDisplay = 'N/A';
+                    if (item.related_goal_id) {
+                        if (Array.isArray(item.related_goal_id) && item.related_goal_id.length > 0) {
+                            goalDisplay = escapeHTML(item.related_goal_id.join(', '));
+                        } else if (typeof item.related_goal_id === 'string' && item.related_goal_id.trim() !== '') { // Handle old string data
+                            goalDisplay = escapeHTML(item.related_goal_id);
+                        } else if (Array.isArray(item.related_goal_id) && item.related_goal_id.length === 0) {
+                            goalDisplay = 'None'; // Explicitly show "None" if array is empty
+                        }
+                    }
+                    html += `<span><strong>Related Goal(s):</strong> ${goalDisplay}</span>`;
                     html += `<span><strong>Related Process:</strong> ${escapeHTML(item.related_process_id) || 'N/A'}</span>`;
                     html += `</div>`; // end card-relations
 
@@ -417,18 +427,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
                  fieldsHtml += `<div><label for="${fieldId}">${label}:</label>`;
 
-                // --- Dropdown for Related Goal ID ---
+                // --- Dropdown for Related Goal ID (Multiple Select) ---
                 if (key === 'related_goal_id' && entityType === 'requirements' && related?.goalIds?.length > 0) {
-                    fieldsHtml += `<select id="${fieldId}" name="${key}">`;
-                    fieldsHtml += `<option value="">-- Select Goal --</option>`; // Default empty option
+                    fieldsHtml += `<select id="${fieldId}" name="${key}" multiple size="5">`; // Added multiple and size
                     const goals = currentDataCache['goals_and_objectives'] || [];
+                    // Ensure currentValue is an array for checking inclusion
+                    const currentSelectedGoalIds = Array.isArray(currentValue) ? currentValue : (currentValue ? [String(currentValue)] : []);
                     goals.forEach(goal => {
                         if (!goal.id) return;
-                        const selectedAttr = (goal.id === currentValue) ? ' selected' : '';
+                        const selectedAttr = currentSelectedGoalIds.includes(String(goal.id)) ? ' selected' : '';
                         const description = goal.description ? goal.description.substring(0, 50) + (goal.description.length > 50 ? '...' : '') : '';
                         fieldsHtml += `<option value="${goal.id}"${selectedAttr}>${goal.id} - ${description}</option>`;
                     });
                     fieldsHtml += `</select>`;
+                    fieldsHtml += `<small>Maintenez Ctrl/Cmd enfoncé pour sélectionner plusieurs objectifs.</small>`;
                 }
                 // --- Dropdown for Related Process ID ---
                 else if (key === 'related_process_id' && entityType === 'requirements' && related?.processIds?.length > 0) {
@@ -527,8 +539,10 @@ document.addEventListener('DOMContentLoaded', () => {
                             itemDataForForm[key] = false; // Default bool
                         } else {
                             // Ensure related ID fields start empty for selection
-                            if (key === 'related_goal_id' || key === 'related_process_id') {
-                                 itemDataForForm[key] = '';
+                            if (key === 'related_goal_id') {
+                                itemDataForForm[key] = []; // related_goal_id is now an array for multi-select
+                            } else if (key === 'related_process_id') {
+                                itemDataForForm[key] = '';
                             } else if (key === 'tags' && entityType === 'requirements') { // Initialize tags as an empty array for new requirements
                                  itemDataForForm[key] = [];
                             }
@@ -540,17 +554,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
 
-            // Ensure 'name', 'author', 'tags' fields are present for editing requirements, even if not set on the item
+            // Ensure 'name', 'author', 'tags', 'related_goal_id' fields are present and correctly typed for editing requirements
             if (isEdit && entityType === 'requirements') {
                 if (typeof itemDataForForm.name === 'undefined') {
-                    itemDataForForm.name = ''; // Default to empty string if not present
+                    itemDataForForm.name = ''; 
                 }
                 if (typeof itemDataForForm.author === 'undefined') {
-                    itemDataForForm.author = ''; // Default to empty string if not present
+                    itemDataForForm.author = ''; 
                 }
-                // Ensure 'tags' field is present for editing requirements, defaulting to an empty array
-                if (typeof itemDataForForm.tags === 'undefined') {
-                    itemDataForForm.tags = []; // Default to empty array if not present
+                if (typeof itemDataForForm.tags === 'undefined' || !Array.isArray(itemDataForForm.tags)) {
+                    itemDataForForm.tags = []; 
+                }
+                // Ensure related_goal_id is an array
+                if (typeof itemDataForForm.related_goal_id === 'undefined') {
+                    itemDataForForm.related_goal_id = [];
+                } else if (!Array.isArray(itemDataForForm.related_goal_id)) {
+                    // Convert to array if it's a single string (e.g., from old data) or null
+                    itemDataForForm.related_goal_id = itemDataForForm.related_goal_id ? [String(itemDataForForm.related_goal_id)] : [];
                 }
             }
 
@@ -573,42 +593,48 @@ document.addEventListener('DOMContentLoaded', () => {
         const formData = new FormData(form);
         const dataPayload = {};
 
-        formData.forEach((value, key) => {
-            const trimmedValue = typeof value === 'string' ? value.trim() : value;
-            const element = form.elements[key];
+        // Iterate over all unique keys present in the form to handle multi-select correctly
+        const formKeys = Array.from(new Set(Array.from(formData.keys())));
 
-            // --- NEW: Specific handling for 'tags' for requirements entityType ---
-            // Note: 'entityType' is the one passed to handleFormSubmit, which is currentEntityType
-            if (key === 'tags' && entityType === 'requirements') {
-                if (typeof trimmedValue === 'string' && trimmedValue.length > 0) {
+        formKeys.forEach(key => {
+            const element = form.elements[key]; // Get the form element
+
+            if (key === 'related_goal_id' && entityType === 'requirements' && element && element.tagName === 'SELECT' && element.multiple) {
+                dataPayload[key] = formData.getAll(key); // Gets an array of selected values. Empty array if none selected.
+            } else if (key === 'tags' && entityType === 'requirements') {
+                const value = formData.get(key); // Tags are a single input field, comma-separated string
+                const trimmedValue = typeof value === 'string' ? value.trim() : '';
+                if (trimmedValue.length > 0) {
                     dataPayload[key] = trimmedValue.split(',')
                                           .map(tag => tag.trim())
-                                          .filter(tag => tag.length > 0); // Remove empty tags
+                                          .filter(tag => tag.length > 0);
                 } else {
                     dataPayload[key] = []; // Send empty array if input is empty
                 }
-            }
-            // --- End of specific 'tags' handling ---
-            // Attempt to parse JSON for other fields if they look like it
-            else if ((element?.tagName === 'TEXTAREA') || (typeof trimmedValue === 'string' && (trimmedValue.startsWith('{') || trimmedValue.startsWith('[')))) {
-                try {
-                    dataPayload[key] = JSON.parse(trimmedValue);
-                } catch (e) {
-                    console.warn(`Could not parse JSON for key '${key}', sending as string: ${trimmedValue}`);
-                    dataPayload[key] = trimmedValue; // Send as string if invalid JSON
+            } else {
+                // General handling for other fields
+                const value = formData.get(key); // For single-value fields
+                const trimmedValue = typeof value === 'string' ? value.trim() : value;
+
+                if ((element?.tagName === 'TEXTAREA') || (typeof trimmedValue === 'string' && (trimmedValue.startsWith('{') || trimmedValue.startsWith('[')))) {
+                    try {
+                        dataPayload[key] = JSON.parse(trimmedValue);
+                    } catch (e) {
+                        dataPayload[key] = trimmedValue; // Send as string if invalid JSON
+                    }
+                } else if (element?.tagName === 'SELECT' && (value === 'true' || value === 'false')) {
+                     dataPayload[key] = (value === 'true'); // Convert boolean strings
                 }
-            } else if (element?.tagName === 'SELECT' && (value === 'true' || value === 'false')) {
-                 dataPayload[key] = (value === 'true'); // Convert boolean strings
-            }
-            // Ensure empty selection in dropdowns becomes null or empty string as appropriate for backend
-            else if (element?.tagName === 'SELECT' && value === '') {
-                 dataPayload[key] = null; // Or "" depending on backend expectation for empty relation
-            }
-            else {
-                dataPayload[key] = value; // Assign raw value for other input types
+                // Ensure empty selection in single dropdowns becomes null
+                else if (element?.tagName === 'SELECT' && value === '' && !(element.multiple)) {
+                     dataPayload[key] = null;
+                }
+                else {
+                    dataPayload[key] = value; // Assign raw value (could be string, or first value of a multi-select if not handled above)
+                }
             }
         });
-
+        
         const itemId = isEdit ? formData.get('id') : null; // Get ID if editing
         const method = isEdit ? 'PUT' : 'POST';
         const endpoint = isEdit ? `/entities/${entityType}/${itemId}` : `/entities/${entityType}`;
