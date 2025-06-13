@@ -222,7 +222,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Card Header (ID, Name, Description, Similarity Score)
                     html += `<div class="card-header">`;
                     html += `<h3><span class="req-id">${escapeHTML(itemId)}</span>: ${escapeHTML(item.name)}</h3>`;
-                    html += `<p class="requirement-description">${escapeHTML(item.description)}</p>`;
+                    // Escape HTML first, then replace newlines with <br> for display
+                    const formattedDescription = escapeHTML(item.description).replace(/\n/g, '<br>');
+                    html += `<p class="requirement-description">${formattedDescription}</p>`;
                     if (isSearchResult && typeof item.similarityScore === 'number') {
                         const score = (item.similarityScore * 100).toFixed(1);
                         html += `<span class="similarity-score-badge">Similarity: ${score}%</span>`;
