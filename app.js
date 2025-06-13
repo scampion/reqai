@@ -513,7 +513,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // --- NEW: Textarea for 'description' field ---
                 else if (key === 'description') {
                     const escapedValue = String(currentValue ?? '').replace(/</g, '&lt;').replace(/>/g, '&gt;'); // Basic escaping for textarea
-                    fieldsHtml += `<textarea id="${fieldId}" name="${key}" rows="5">${escapedValue}</textarea>`;
+                    fieldsHtml += `<textarea id="${fieldId}" name="${key}" rows="10">${escapedValue}</textarea>`;
                 }
                 // Fallback to existing logic for other fields
                 else if (typeof currentValue === 'object' && currentValue !== null) {
