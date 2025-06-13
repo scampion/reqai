@@ -221,11 +221,18 @@ class APIRequestHandler(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
         """Handles GET requests for listing, retrieving, exporting, and serving frontend."""
         parsed_path = urlparse(self.path)
-        path = parsed_path.path
-        print(f"DEBUG: do_GET received path: {path}") # Ajout pour le débogage
-        path_parts = path.strip('/').split('/')
+        original_path = parsed_path.path # Pour la journalisation et la division cohérente
+        path = original_path.rstrip('/') # Chemin normalisé pour les correspondances exactes (supprime la barre oblique finale)
+                                        # Note: "/" devient "" après rstrip('/')
+        
+        print(f"DEBUG: do_GET received original_path: '{original_path}', normalized_path_for_exact_match: '{path}'")
+        
+        # path_parts pour la logique de chemin segmenté, basé sur original_path nettoyé des deux côtés
+        temp_stripped_path = original_path.strip('/')
+        path_parts = temp_stripped_path.split('/') if temp_stripped_path else []
 
         # --- NEW: Endpoint: /api/export/rtf ---
+        # La comparaison utilise 'path' normalisé
         if path == "/api/export/rtf":
             try:
                 current_data = load_data()
@@ -246,8 +253,9 @@ class APIRequestHandler(http.server.BaseHTTPRequestHandler):
         # --- End of NEW Endpoint ---
 
         # Endpoint: /api/entity_types (List all types)
+        # La comparaison utilise 'path' normalisé
         if path == "/api/entity_types":
-             print(f"DEBUG: Handling /api/entity_types") # Ajout pour le débogage
+             print(f"DEBUG: Handling /api/entity_types (normalized path: '{path}')")
              current_data = load_data()
              entity_types = list(current_data.keys())
              print(f"DEBUG: Entity types to send: {entity_types}") # Ajout pour le débogage
@@ -290,13 +298,14 @@ class APIRequestHandler(http.server.BaseHTTPRequestHandler):
             return
 
         # Serve frontend files
-        if path == "/" or path == "/index.html":
+        # Les comparaisons utilisent 'path' normalisé. Original "/" devient "" après rstrip.
+        if path == "" or path == "/index.html": # Gère "/" et "/index.html" (et avec des barres obliques finales)
              self.serve_static_file("index.html", "text/html; charset=utf-8")
-        elif path == "/app.js":
+        elif path == "/app.js": # Gère "/app.js" (et avec une barre oblique finale)
              self.serve_static_file("app.js", "application/javascript; charset=utf-8")
         else:
-            # Default 404 for other paths
-            self.send_error_response("API Endpoint or File not found.", HTTPStatus.NOT_FOUND)
+            # Default 404 for other paths, log the original path requested
+            self.send_error_response(f"API Endpoint or File not found for: {original_path}", HTTPStatus.NOT_FOUND)
 
     # --- POST, PUT, DELETE Handlers (Unchanged) ---
     def do_POST(self):
