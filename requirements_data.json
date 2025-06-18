@@ -49,6 +49,27 @@
       "stakeholder_id": "STK001",
       "deadline": "2024-12-31",
       "id": "GOAL006"
+    },
+    {
+      "description": "Deploy a AI/ML Platform",
+      "priority": "high",
+      "stakeholder_id": "STK001",
+      "deadline": "2024-12-31",
+      "id": "GOAL_7"
+    },
+    {
+      "description": "Deploy a AI/ML Platform",
+      "priority": "high",
+      "stakeholder_id": "STK001",
+      "deadline": "2024-12-31",
+      "id": "GOAL_8"
+    },
+    {
+      "description": "Deploy a AI/ML Platform",
+      "priority": "high",
+      "stakeholder_id": "STK001",
+      "deadline": "2024-12-31",
+      "id": "GOAL_9"
     }
   ],
   "business_processes": [
@@ -67,10 +88,19 @@
       "id": "REQ002",
       "description": "Automate order processing",
       "type": "functional",
-      "priority": "medium",
+      "priority": "Must Have",
       "source": "STK002",
-      "related_goal_id": "GOAL002",
-      "related_process_id": "BP002"
+      "related_goal_id": [
+        "GOAL003",
+        "GOAL004",
+        "GOAL005"
+      ],
+      "related_process_id": [
+        "BP003"
+      ],
+      "name": "Test collect datat ",
+      "author": "",
+      "tags": []
     },
     {
       "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,",
