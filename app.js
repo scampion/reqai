@@ -10,6 +10,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentDataCache = {}; // Simple cache for entity data
     let activeTagFilter = null; // NEW: To store the currently active tag filter
     let activeVersionFilter = null; // NEW: To store the currently active version filter
+    let cachedSortedUniqueTags = null; // NEW: Cache for sorted unique tags for requirements
+    let cachedSortedUniqueVersions = null; // NEW: Cache for sorted unique versions for requirements
 
     // --- Utility Functions ---
 
@@ -96,21 +98,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // --- NEW: Add Tag Cloud for Requirements ---
         if (entityType === 'requirements') {
-            const allRequirementsFromCache = currentDataCache['requirements'] || items; // Use full cache for comprehensive tag cloud
-            const uniqueTags = new Set();
-            if (allRequirementsFromCache) {
-                allRequirementsFromCache.forEach(item => {
-                    if (item.tags && Array.isArray(item.tags)) {
-                        item.tags.forEach(tag => {
-                            const trimmedTag = String(tag).trim(); // Ensure tag is a string before trimming
-                            if (trimmedTag) uniqueTags.add(trimmedTag);
-                        });
-                    }
-                });
-            }
-
+            // Use cached sorted unique tags
+            const sortedUniqueTags = cachedSortedUniqueTags || [];
             let tagCloudHtml = '<div class="tag-list-container"><strong>Tag filter(s):</strong> ';
-            const sortedUniqueTags = Array.from(uniqueTags).sort();
 
             if (sortedUniqueTags.length > 0) {
                 sortedUniqueTags.forEach(tag => {
@@ -128,17 +118,9 @@ document.addEventListener('DOMContentLoaded', () => {
             html += tagCloudHtml; // Add tag cloud to the main html output
 
             // --- NEW: Add Version Filter for Requirements ---
-            const uniqueVersions = new Set();
-            if (allRequirementsFromCache) {
-                allRequirementsFromCache.forEach(item => {
-                    if (item.version && String(item.version).trim()) {
-                        uniqueVersions.add(String(item.version).trim());
-                    }
-                });
-            }
-
+            // Use cached sorted unique versions
+            const sortedUniqueVersions = cachedSortedUniqueVersions || [];
             let versionFilterHtml = '<div class="version-list-container"><strong>Version filter(s):</strong> ';
-            const sortedUniqueVersions = Array.from(uniqueVersions).sort();
 
             if (sortedUniqueVersions.length > 0) {
                 sortedUniqueVersions.forEach(version => {
@@ -753,6 +735,33 @@ document.addEventListener('DOMContentLoaded', () => {
                     throw new Error(`No data returned for ${entityType}`);
                 }
                 currentDataCache[entityType] = data;
+
+                // NEW: If requirements data is loaded/reloaded, update cached tags and versions
+                if (entityType === 'requirements') {
+                    const allRequirementsForFilters = data; // Use the freshly fetched data
+                    const uniqueTagsSet = new Set();
+                    if (allRequirementsForFilters) {
+                        allRequirementsForFilters.forEach(item => {
+                            if (item.tags && Array.isArray(item.tags)) {
+                                item.tags.forEach(tag => {
+                                    const trimmedTag = String(tag).trim();
+                                    if (trimmedTag) uniqueTagsSet.add(trimmedTag);
+                                });
+                            }
+                        });
+                    }
+                    cachedSortedUniqueTags = Array.from(uniqueTagsSet).sort();
+
+                    const uniqueVersionsSet = new Set();
+                    if (allRequirementsForFilters) {
+                        allRequirementsForFilters.forEach(item => {
+                            if (item.version && String(item.version).trim()) {
+                                uniqueVersionsSet.add(String(item.version).trim());
+                            }
+                        });
+                    }
+                    cachedSortedUniqueVersions = Array.from(uniqueVersionsSet).sort();
+                }
             }
             
             const items = currentDataCache[entityType];
