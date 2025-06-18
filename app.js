@@ -159,7 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (activeTagFilter) {
                 filteredItems = filteredItems.filter(
-                    item => item.tags && Array.isArray(item.tags) && item.tags.map(t => String(t).trim()).includes(activeTagFilter)
+                    item => item.tags && Array.isArray(item.tags) && item.tags.some(t => String(t).trim() === activeTagFilter)
                 );
             }
             if (activeVersionFilter) {
