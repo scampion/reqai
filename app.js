@@ -91,8 +91,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `;
             // Trigger indexing if not already done (or if model wasn't ready before)
-            // Defer indexing to prevent blocking the UI rendering
-            setTimeout(() => ensureExtractorInitializedAndIndexRequirements(items), 0);
+            // Defer indexing to prevent blocking the UI rendering, give a bit more time for initial render.
+            setTimeout(() => ensureExtractorInitializedAndIndexRequirements(items), 100);
         }
         // --- End of NEW Search UI ---
 
