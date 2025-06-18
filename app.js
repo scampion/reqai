@@ -563,7 +563,14 @@ document.addEventListener('DOMContentLoaded', () => {
                              keysToUse.push(reqKey);
                          }
                      });
-                 }
+                 } else if (entityType === 'solutions') { // NEW: Default fields for new Solutions
+                    const solutionKeys = ['name', 'description']; // Add other core fields for solutions if any
+                    solutionKeys.forEach(solKey => {
+                        if (!keysToUse.includes(solKey)) {
+                            keysToUse.push(solKey);
+                        }
+                    });
+                }
                 // Add more defaults for other types if needed
 
                 keysToUse.forEach(key => {
@@ -815,7 +822,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 'systems_and_applications': '💻',
                 'data_entities': '🗄️',
                 'risks_and_constraints': '⚠️',
-                'metrics_and_kpis': '📊'
+                'metrics_and_kpis': '📊',
+                'solutions': '💡' // NEW: Added Solutions
             };
             entityTypes.sort().forEach(type => {
                 const li = document.createElement('li');
