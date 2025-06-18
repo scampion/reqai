@@ -242,5 +242,11 @@
       ]
     }
   ],
-  "solutions": []
+  "solutions": [
+    {
+      "name": "hadoc",
+      "description": "",
+      "id": "SOL_1"
+    }
+  ]
 }
