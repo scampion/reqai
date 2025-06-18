@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let cachedSortedUniqueTags = null; // NEW: Cache for sorted unique tags for requirements
     let cachedSortedUniqueVersions = null; // NEW: Cache for sorted unique versions for requirements
     let isIndexingInProgress = false; // NEW: Flag to track if indexing is ongoing
+    const EMBEDDINGS_CACHE_KEY = 'requirementsEmbeddingsCache'; // NEW: localStorage key for embeddings
 
     // --- Utility Functions ---
 
@@ -696,6 +697,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Clear relevant caches and reload list
             delete currentDataCache[entityType];
             if (entityType === 'requirements') {
+                 localStorage.removeItem(EMBEDDINGS_CACHE_KEY); // NEW: Invalidate embeddings cache
                  delete currentDataCache['goals_and_objectives'];
                  delete currentDataCache['business_processes'];
             }
@@ -720,6 +722,9 @@ document.addEventListener('DOMContentLoaded', () => {
                  showMessage(`Item ${itemId} deleted successfully.`, false);
                  // Clear cache for this type and reload list
                  delete currentDataCache[entityType];
+                 if (entityType === 'requirements') { // NEW: Invalidate embeddings cache
+                    localStorage.removeItem(EMBEDDINGS_CACHE_KEY);
+                 }
                  loadEntityList(entityType);
             } catch (error) {
                  // Error message already shown by fetchAPI
@@ -880,17 +885,41 @@ document.addEventListener('DOMContentLoaded', () => {
             return false;
         }
 
+        // NEW: Try to load embeddings from localStorage
+        if (transformersInitialized) { // Only attempt if model itself is ready
+            try {
+                const cachedEmbeddingsJSON = localStorage.getItem(EMBEDDINGS_CACHE_KEY);
+                if (cachedEmbeddingsJSON) {
+                    const loadedIndex = JSON.parse(cachedEmbeddingsJSON);
+                    const indexableRequirementsCount = requirements.filter(r => r.id && r.description && String(r.description).trim() !== '').length;
+
+                    if (Object.keys(loadedIndex).length > 0 && indexableRequirementsCount > 0 && Object.keys(loadedIndex).length === indexableRequirementsCount) {
+                        requirementsIndex = loadedIndex;
+                        showMessage('Loaded requirement embeddings from cache.');
+                        // isIndexingInProgress remains false as we are not actively batch indexing
+                        return true; // Successfully loaded from cache
+                    } else if (Object.keys(loadedIndex).length > 0) {
+                        // Mismatch in count, cache might be stale
+                        showMessage('Cached embeddings seem outdated, re-indexing...');
+                        localStorage.removeItem(EMBEDDINGS_CACHE_KEY); // Clear stale cache
+                    }
+                }
+            } catch (e) {
+                console.warn('Could not load or parse embeddings from localStorage:', e);
+                localStorage.removeItem(EMBEDDINGS_CACHE_KEY); // Clear cache if parsing failed
+            }
+        }
+
         if (isIndexingInProgress) {
             showMessage('Indexing is already in progress. Please wait.');
             return false; 
         }
 
         isIndexingInProgress = true;
-        requirementsIndex = {}; // Always start with a fresh index for this run
+        requirementsIndex = {}; // Always start with a fresh index if not loaded from cache
 
+        showMessage('Indexing requirements for search (this may take a moment)...');
         try {
-            showMessage('Indexing requirements for search (this may take a moment)...');
-            
             const BATCH_SIZE = 10; // Process requirements in chunks
             let processedCount = 0;
             const totalRequirements = requirements.length;
@@ -921,15 +950,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Yield to the event loop to keep UI responsive
                 await new Promise(resolve => setTimeout(resolve, 0)); 
             }
-            
             const indexedItemsCount = Object.keys(requirementsIndex).length;
+            let finalMessage = '';
+
             if (indexedItemsCount > 0) {
-                showMessage(`Requirements indexed for search. ${indexedItemsCount} items ready.`);
+                finalMessage = `Requirements indexed. ${indexedItemsCount} items ready.`;
             } else if (totalRequirements > 0) {
-                showMessage(`Indexing complete. No requirements had descriptions to index.`);
+                finalMessage = `Indexing complete. No requirements had descriptions to index.`;
             } else {
-                showMessage(`Indexing complete. No requirements to index.`);
+                finalMessage = `Indexing complete. No requirements to index.`;
             }
+
+            // NEW: Try to save to localStorage
+            if (indexedItemsCount > 0) { // Only try to save if there's something to save
+                try {
+                    localStorage.setItem(EMBEDDINGS_CACHE_KEY, JSON.stringify(requirementsIndex));
+                    finalMessage = `Requirements indexed and embeddings cached. ${indexedItemsCount} items ready.`;
+                } catch (e) {
+                    console.warn('Could not save embeddings to localStorage:', e);
+                    finalMessage += ' (Could not cache embeddings)';
+                }
+            }
+            showMessage(finalMessage);
             return true;
         } catch (error) {
             console.error('Failed to index requirements:', error);
@@ -1088,6 +1130,9 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // 4. Clear cache and reload list to show the new item
             delete currentDataCache[entityType];
+            if (entityType === 'requirements') { // NEW: Invalidate embeddings cache
+                localStorage.removeItem(EMBEDDINGS_CACHE_KEY);
+            }
             loadEntityList(entityType);
 
         } catch (error) {
