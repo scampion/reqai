@@ -89,7 +89,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `;
             // Trigger indexing if not already done (or if model wasn't ready before)
-            ensureExtractorInitializedAndIndexRequirements(items);
+            // Defer indexing to prevent blocking the UI rendering
+            setTimeout(() => ensureExtractorInitializedAndIndexRequirements(items), 0);
         }
         // --- End of NEW Search UI ---
 
