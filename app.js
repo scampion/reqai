@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let activeVersionFilter = null; // NEW: To store the currently active version filter
     let cachedSortedUniqueTags = null; // NEW: Cache for sorted unique tags for requirements
     let cachedSortedUniqueVersions = null; // NEW: Cache for sorted unique versions for requirements
+    let isIndexingInProgress = false; // NEW: Flag to track if indexing is ongoing
 
     // --- Utility Functions ---
 
@@ -859,49 +860,84 @@ document.addEventListener('DOMContentLoaded', () => {
     let transformersInitialized = false;
 
     async function ensureExtractorInitializedAndIndexRequirements(requirements) {
+        // 1. Initialize feature extractor (one-time)
         if (!transformersInitialized) {
             try {
                 showMessage('Loading text embedding model...');
-                // Dynamically import Transformers.js
                 const { pipeline } = await import('https://cdn.jsdelivr.net/npm/@xenova/transformers@2.6.0');
                 featureExtractor = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
                 transformersInitialized = true;
-                showMessage('Text embedding model ready');
+                showMessage('Text embedding model ready.');
             } catch (error) {
                 console.error('Failed to initialize feature extractor:', error);
-                showMessage('Failed to initialize search capabilities', true);
-                return false;
+                showMessage('Failed to initialize search capabilities. Search will be unavailable.', true);
+                return false; // Critical failure
             }
         }
 
-        if (requirements && requirements.length > 0) {
-            try {
-                showMessage('Indexing requirements for search...');
-                requirementsIndex = {};
+        // If no requirements or featureExtractor failed, nothing to index
+        if (!requirements || requirements.length === 0 || !featureExtractor) {
+            return false;
+        }
+
+        if (isIndexingInProgress) {
+            showMessage('Indexing is already in progress. Please wait.');
+            return false; 
+        }
+
+        isIndexingInProgress = true;
+        requirementsIndex = {}; // Always start with a fresh index for this run
+
+        try {
+            showMessage('Indexing requirements for search (this may take a moment)...');
+            
+            const BATCH_SIZE = 10; // Process requirements in chunks
+            let processedCount = 0;
+            const totalRequirements = requirements.length;
+
+            for (let i = 0; i < totalRequirements; i += BATCH_SIZE) {
+                const currentBatch = requirements.slice(i, i + BATCH_SIZE);
                 
-                // Create embeddings for all requirement descriptions
-                const texts = requirements.map(req => req.description || '');
-                const embeddings = await featureExtractor(texts, { pooling: 'mean', normalize: true });
-                
-                // Store embeddings with their requirement IDs
-                requirements.forEach((req, i) => {
-                    if (req.id && req.description) {
+                const itemsToIndexInBatch = currentBatch.filter(req => req.id && req.description && String(req.description).trim() !== '');
+                const textsToEmbed = itemsToIndexInBatch.map(req => req.description);
+
+                if (textsToEmbed.length > 0) {
+                    const embeddingsBatch = await featureExtractor(textsToEmbed, { pooling: 'mean', normalize: true });
+
+                    itemsToIndexInBatch.forEach((req, indexInFilteredBatch) => {
                         requirementsIndex[req.id] = {
-                            embedding: embeddings[i].data,
+                            embedding: embeddingsBatch[indexInFilteredBatch].data,
                             requirement: req
                         };
-                    }
-                });
+                    });
+                }
+
+                processedCount += currentBatch.length;
+                // Update message only if not the very last batch that would be covered by final message
+                if (processedCount < totalRequirements) {
+                     showMessage(`Indexing: ${processedCount}/${totalRequirements} requirements processed...`);
+                }
                 
-                showMessage('Requirements indexed for search');
-                return true;
-            } catch (error) {
-                console.error('Failed to index requirements:', error);
-                showMessage('Failed to index requirements for search', true);
-                return false;
+                // Yield to the event loop to keep UI responsive
+                await new Promise(resolve => setTimeout(resolve, 0)); 
             }
+            
+            const indexedItemsCount = Object.keys(requirementsIndex).length;
+            if (indexedItemsCount > 0) {
+                showMessage(`Requirements indexed for search. ${indexedItemsCount} items ready.`);
+            } else if (totalRequirements > 0) {
+                showMessage(`Indexing complete. No requirements had descriptions to index.`);
+            } else {
+                showMessage(`Indexing complete. No requirements to index.`);
+            }
+            return true;
+        } catch (error) {
+            console.error('Failed to index requirements:', error);
+            showMessage('Error during requirements indexing. Search may be incomplete.', true);
+            return false;
+        } finally {
+            isIndexingInProgress = false;
         }
-        return false;
     }
 
     async function performSearch() {
