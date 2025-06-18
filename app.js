@@ -98,15 +98,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // --- NEW: Add Tag Cloud for Requirements ---
         if (entityType === 'requirements') {
-            // Use cached sorted unique tags
-            const sortedUniqueTags = cachedSortedUniqueTags || [];
+            // Use cached sorted unique tags (now an array of objects {tag, count})
+            const sortedUniqueTagsWithCounts = cachedSortedUniqueTags || [];
             let tagCloudHtml = '<div class="tag-list-container"><strong>Tag filter(s):</strong> ';
 
-            if (sortedUniqueTags.length > 0) {
-                sortedUniqueTags.forEach(tag => {
+            if (sortedUniqueTagsWithCounts.length > 0) {
+                sortedUniqueTagsWithCounts.forEach(tagObj => {
+                    const tag = tagObj.tag;
+                    const count = tagObj.count;
                     const isActive = tag === activeTagFilter;
                     const escapedTag = escapeHTML(tag); // Uses global escapeHTML
-                    tagCloudHtml += `<button class="tag-button ${isActive ? 'active' : ''}" onclick="app.applyTagFilter('${escapedTag}')">${escapedTag}</button> `;
+                    tagCloudHtml += `<button class="tag-button ${isActive ? 'active' : ''}" onclick="app.applyTagFilter('${escapedTag}')">${escapedTag} (${count})</button> `;
                 });
                 if (activeTagFilter) {
                     tagCloudHtml += `<button class="tag-button clear-filter" onclick="app.clearTagFilter()">Clear Filter (Show All)</button>`;
@@ -739,18 +741,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 // NEW: If requirements data is loaded/reloaded, update cached tags and versions
                 if (entityType === 'requirements') {
                     const allRequirementsForFilters = data; // Use the freshly fetched data
-                    const uniqueTagsSet = new Set();
+                    const tagCounts = new Map(); // To store tag counts
+
                     if (allRequirementsForFilters) {
                         allRequirementsForFilters.forEach(item => {
                             if (item.tags && Array.isArray(item.tags)) {
                                 item.tags.forEach(tag => {
                                     const trimmedTag = String(tag).trim();
-                                    if (trimmedTag) uniqueTagsSet.add(trimmedTag);
+                                    if (trimmedTag) {
+                                        tagCounts.set(trimmedTag, (tagCounts.get(trimmedTag) || 0) + 1);
+                                    }
                                 });
                             }
                         });
                     }
-                    cachedSortedUniqueTags = Array.from(uniqueTagsSet).sort();
+                    // Convert map to array of objects and sort by tag name
+                    cachedSortedUniqueTags = Array.from(tagCounts.entries())
+                        .map(([tag, count]) => ({ tag, count }))
+                        .sort((a, b) => a.tag.localeCompare(b.tag));
 
                     const uniqueVersionsSet = new Set();
                     if (allRequirementsForFilters) {
