@@ -14,6 +14,12 @@ document.addEventListener('DOMContentLoaded', () => {
     let cachedSortedUniqueVersions = null; // NEW: Cache for sorted unique versions for requirements
     let isIndexingInProgress = false; // NEW: Flag to track if indexing is ongoing
     const EMBEDDINGS_CACHE_KEY = 'requirementsEmbeddingsCache'; // NEW: localStorage key for embeddings
+    const ASSESSMENT_OPTIONS = [ // NEW: Assessment options
+        { value: "", display: "-- Not Assessed --", emoji: "❓" },
+        { value: "available", display: "Available", emoji: "✅" },
+        { value: "partially_available", display: "Partially Available", emoji: "🟡" },
+        { value: "not_available", display: "Not Available", emoji: "🔴" }
+    ];
 
     // --- Utility Functions ---
 
@@ -301,6 +307,26 @@ document.addEventListener('DOMContentLoaded', () => {
                         html += `</ul></div>`; // end card-details
                     }
 
+                    // --- NEW: Display Solution Assessments in Card ---
+                    if (item.solution_assessments && Array.isArray(item.solution_assessments) && item.solution_assessments.length > 0) {
+                        html += `<div class="card-solution-assessments"><h4>Solution Assessments:</h4>`;
+                        item.solution_assessments.forEach(assessment => {
+                            const solution = currentDataCache['solutions']?.find(s => s.id === assessment.solution_id);
+                            const solutionName = solution ? escapeHTML(solution.name) : `ID: ${escapeHTML(assessment.solution_id)}`;
+                            const assessmentOption = ASSESSMENT_OPTIONS.find(opt => opt.value === assessment.result);
+                            const emoji = assessmentOption ? assessmentOption.emoji : '❓';
+                            
+                            html += `<div class="assessment-entry" style="margin-bottom: 5px; padding-left: 10px; border-left: 2px solid #eee;">`;
+                            html += `<p><strong>${solutionName}:</strong> ${emoji} ${escapeHTML(assessmentOption?.display || assessment.result)}</p>`;
+                            if (assessment.description) {
+                                html += `<p style="font-size: 0.9em; margin-left: 15px;"><em>${escapeHTML(assessment.description).replace(/\n/g, '<br>')}</em></p>`;
+                            }
+                            html += `</div>`;
+                        });
+                        html += `</div>`; // end card-solution-assessments
+                    }
+                    // --- End of Display Solution Assessments ---
+
                     // Card Actions
                     html += '<div class="card-actions actions">';
                     if (itemId) {
@@ -392,22 +418,29 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Fetch goals (check cache first)
                     currentDataCache['goals_and_objectives'] ? Promise.resolve(currentDataCache['goals_and_objectives']) : fetchAPI('/entities/goals_and_objectives'),
                     // Fetch processes (check cache first)
-                    currentDataCache['business_processes'] ? Promise.resolve(currentDataCache['business_processes']) : fetchAPI('/entities/business_processes')
+                    currentDataCache['business_processes'] ? Promise.resolve(currentDataCache['business_processes']) : fetchAPI('/entities/business_processes'),
+                    // Fetch solutions (check cache first) // NEW
+                    currentDataCache['solutions'] ? Promise.resolve(currentDataCache['solutions']) : fetchAPI('/entities/solutions')
                 ]);
 
                 const goals = results[0] || [];
                 const processes = results[1] || [];
+                const solutions = results[2] || []; // NEW
 
                 // Cache fetched data
                 currentDataCache['goals_and_objectives'] = goals;
                 currentDataCache['business_processes'] = processes;
+                currentDataCache['solutions'] = solutions; // NEW
 
                 // Prepare IDs for dropdowns
                 relatedData.goalIds = goals.map(goal => goal.id).filter(id => id);
                 relatedData.processIds = processes.map(proc => proc.id).filter(id => id);
+                // Solutions data will be used directly for iterating in the form
+                relatedData.solutions = solutions; // NEW
 
                 console.log("Goal IDs for dropdown:", relatedData.goalIds);
                 console.log("Process IDs for dropdown:", relatedData.processIds);
+                console.log("Solutions for assessment:", relatedData.solutions); // NEW
 
             } catch (error) {
                 console.error("Failed to fetch related data for dropdowns:", error);
@@ -523,7 +556,41 @@ document.addEventListener('DOMContentLoaded', () => {
                  fieldsHtml += `</div>`;
              });
 
-             formHtml += fieldsHtml;
+            // --- NEW: Solution Assessments Section for Requirements ---
+            if (entityType === 'requirements' && related?.solutions?.length > 0) {
+                fieldsHtml += `<hr><h4>Solution Assessments</h4>`;
+                const currentAssessments = itemData.solution_assessments || []; // itemData is itemDataForForm
+
+                related.solutions.forEach(solution => {
+                    if (!solution.id || !solution.name) return; // Skip solutions without id/name
+
+                    const existingAssessment = currentAssessments.find(asm => asm.solution_id === solution.id);
+                    const currentResult = existingAssessment ? existingAssessment.result : "";
+                    const currentDescription = existingAssessment ? (existingAssessment.description || "") : "";
+
+
+                    fieldsHtml += `<div class="solution-assessment-group" style="border: 1px solid #eee; padding: 10px; margin-bottom: 10px;">`;
+                    fieldsHtml += `<h5>${escapeHTML(solution.name)} (ID: ${escapeHTML(solution.id)})</h5>`;
+                    
+                    // Assessment Result Dropdown
+                    fieldsHtml += `<div><label for="assessment_result_${solution.id}">Assessment:</label>`;
+                    fieldsHtml += `<select id="assessment_result_${solution.id}" name="assessment_result_${solution.id}">`;
+                    ASSESSMENT_OPTIONS.forEach(opt => {
+                        const selectedAttr = (opt.value === currentResult) ? ' selected' : '';
+                        fieldsHtml += `<option value="${escapeHTML(opt.value)}"${selectedAttr}>${opt.emoji} ${escapeHTML(opt.display)}</option>`;
+                    });
+                    fieldsHtml += `</select></div>`;
+
+                    // Assessment Description Textarea
+                    fieldsHtml += `<div><label for="assessment_description_${solution.id}">Description:</label>`;
+                    fieldsHtml += `<textarea id="assessment_description_${solution.id}" name="assessment_description_${solution.id}" rows="3">${escapeHTML(currentDescription)}</textarea></div>`;
+                    
+                    fieldsHtml += `</div>`; // end solution-assessment-group
+                });
+            }
+            // --- End of Solution Assessments Section ---
+
+             formHtml += fieldsHtml; // This now includes the main fields and assessment fields
              formHtml += `<button type="submit">${isEdit ? 'Update Item' : 'Add Item'}</button>`;
              formHtml += `<button type="button" class="cancel-button" onclick="app.loadEntityList('${entityType}')">Cancel</button>`;
              formHtml += `</form></div>`;
@@ -591,12 +658,20 @@ document.addEventListener('DOMContentLoaded', () => {
                             } else if (key === 'tags' && entityType === 'requirements') { // Initialize tags as an empty array for new requirements
                                  itemDataForForm[key] = [];
                             }
+                            // NEW: Initialize solution_assessments for new requirements
+                            else if (key === 'solution_assessments' && entityType === 'requirements') {
+                                itemDataForForm[key] = [];
+                            }
                             else {
                                  itemDataForForm[key] = sampleValue ?? ''; // Default empty string from sample or truly empty
                             }
                         }
                     }
                 });
+                // NEW: Ensure solution_assessments field exists for new requirements if not in sample
+                if (entityType === 'requirements' && typeof itemDataForForm.solution_assessments === 'undefined') {
+                    itemDataForForm.solution_assessments = [];
+                }
             }
 
             // Ensure 'name', 'author', 'tags', 'related_goal_id', 'related_process_id' fields are present and correctly typed for editing requirements
@@ -621,6 +696,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     itemDataForForm.related_process_id = [];
                 } else if (!Array.isArray(itemDataForForm.related_process_id)) {
                     itemDataForForm.related_process_id = itemDataForForm.related_process_id ? [String(itemDataForForm.related_process_id)] : [];
+                }
+                // NEW: Ensure solution_assessments is an array for editing requirements
+                if (typeof itemDataForForm.solution_assessments === 'undefined' || !Array.isArray(itemDataForForm.solution_assessments)) {
+                    itemDataForForm.solution_assessments = [];
                 }
             }
 
@@ -688,6 +767,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         });
+
+        // --- NEW: Collect Solution Assessments for Requirements ---
+        if (entityType === 'requirements' && currentDataCache['solutions']) {
+            dataPayload.solution_assessments = [];
+            currentDataCache['solutions'].forEach(solution => {
+                if (solution.id) {
+                    const result = formData.get(`assessment_result_${solution.id}`);
+                    const description = formData.get(`assessment_description_${solution.id}`);
+
+                    // Only add assessment if a result is selected (not the default "-- Not Assessed --" which has value "")
+                    if (result && result !== "") {
+                        dataPayload.solution_assessments.push({
+                            solution_id: solution.id,
+                            result: result,
+                            description: description || "" // Ensure description is at least an empty string
+                        });
+                    }
+                }
+            });
+        }
+        // --- End of Collect Solution Assessments ---
         
         const itemId = isEdit ? formData.get('id') : null; // Get ID if editing
         const method = isEdit ? 'PUT' : 'POST';

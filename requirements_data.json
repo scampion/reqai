@@ -100,7 +100,8 @@
       ],
       "name": "Test collect datat ",
       "author": "",
-      "tags": []
+      "tags": [],
+      "solution_assessments": []
     },
     {
       "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,",
@@ -109,7 +110,8 @@
       "source": "",
       "related_goal_id": "",
       "related_process_id": "",
-      "id": "REQ004"
+      "id": "REQ004",
+      "solution_assessments": []
     },
     {
       "description": "Implement a new CRM system 2",
@@ -118,7 +120,8 @@
       "source": "STK001",
       "related_goal_id": null,
       "related_process_id": null,
-      "id": "REQ005"
+      "id": "REQ005",
+      "solution_assessments": []
     },
     {
       "description": "Store preprocessing pipeline in the model registry (like a one hot encoder) ",
@@ -127,7 +130,8 @@
       "source": "STK001",
       "related_goal_id": "GOAL003",
       "related_process_id": "BP003",
-      "id": "REQ008"
+      "id": "REQ008",
+      "solution_assessments": []
     },
     {
       "description": "Test2",
@@ -142,7 +146,8 @@
         "test",
         "mami"
       ],
-      "id": "REQ009"
+      "id": "REQ009",
+      "solution_assessments": []
     }
   ],
   "systems_and_applications": [
