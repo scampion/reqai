@@ -1410,6 +1410,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     let sectionHtml = '';
                     if (entityType === 'requirements') {
+                        // Ensure solutions data is available for assessments
+                        if (!currentDataCache['solutions']) {
+                            try {
+                                const solutionsData = await fetchAPI('/entities/solutions');
+                                currentDataCache['solutions'] = solutionsData || [];
+                            } catch (solError) {
+                                console.warn('Could not load solutions data for report details:', solError);
+                                currentDataCache['solutions'] = []; // Default to empty if fetch fails
+                            }
+                        }
+
                         items.forEach(item => {
                             sectionHtml += '<div class="report-requirement-item">';
                             sectionHtml += `<h4>${escapeHTML(item.id)}: ${escapeHTML(item.name)}</h4>`;
