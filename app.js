@@ -1429,12 +1429,37 @@ document.addEventListener('DOMContentLoaded', () => {
                             if (item.tags && item.tags.length > 0) {
                                 sectionHtml += `<p><strong>Tags:</strong> ${escapeHTML(item.tags.join(', '))}</p>`;
                             }
-                            if (item.related_goal_id && item.related_goal_id.length > 0) {
-                                sectionHtml += `<p><strong>Related Goal(s):</strong> ${escapeHTML(item.related_goal_id.join(', '))}</p>`;
+
+                            // Robust handling for related_goal_id
+                            if (item.related_goal_id) {
+                                let goalText = 'None';
+                                if (Array.isArray(item.related_goal_id)) {
+                                    if (item.related_goal_id.length > 0) {
+                                        goalText = escapeHTML(item.related_goal_id.join(', '));
+                                    }
+                                } else if (typeof item.related_goal_id === 'string' && item.related_goal_id.trim() !== '') {
+                                    goalText = escapeHTML(item.related_goal_id); // Display string directly
+                                }
+                                sectionHtml += `<p><strong>Related Goal(s):</strong> ${goalText}</p>`;
+                            } else {
+                                sectionHtml += `<p><strong>Related Goal(s):</strong> None</p>`;
                             }
-                             if (item.related_process_id && item.related_process_id.length > 0) {
-                                sectionHtml += `<p><strong>Related Process(es):</strong> ${escapeHTML(item.related_process_id.join(', '))}</p>`;
+
+                            // Robust handling for related_process_id
+                            if (item.related_process_id) {
+                                let processText = 'None';
+                                if (Array.isArray(item.related_process_id)) {
+                                    if (item.related_process_id.length > 0) {
+                                        processText = escapeHTML(item.related_process_id.join(', '));
+                                    }
+                                } else if (typeof item.related_process_id === 'string' && item.related_process_id.trim() !== '') {
+                                    processText = escapeHTML(item.related_process_id); // Display string directly
+                                }
+                                sectionHtml += `<p><strong>Related Process(es):</strong> ${processText}</p>`;
+                            } else {
+                                sectionHtml += `<p><strong>Related Process(es):</strong> None</p>`;
                             }
+
                             if (item.solution_assessments && item.solution_assessments.length > 0) {
                                 sectionHtml += '<h5>Solution Assessments:</h5><ul>';
                                 item.solution_assessments.forEach(asm => {
