@@ -935,6 +935,15 @@ document.addEventListener('DOMContentLoaded', () => {
             samButton.onclick = () => app.loadSolutionAssessmentMatrix();
             samLi.appendChild(samButton);
             navList.appendChild(samLi);
+
+            // NEW: Add Full Report button to Dashboards
+            const reportLi = document.createElement('li');
+            const reportButton = document.createElement('button');
+            reportButton.textContent = '📄 Full Report';
+            reportButton.dataset.dashboard = 'full_report';
+            reportButton.onclick = () => app.loadFullReport();
+            reportLi.appendChild(reportButton);
+            navList.appendChild(reportLi);
             // --- End of NEW Dashboards Section ---
 
             // --- Add Entities Section ---
@@ -1360,6 +1369,109 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- End of Solution Assessment Matrix Dashboard ---
 
 
+    // --- NEW: Full Report Dashboard ---
+    async function loadFullReport() {
+        currentEntityType = null; // Clear current entity type
+        setActiveNavButton('full_report', 'dashboard');
+        await renderFullReport();
+    }
+
+    async function renderFullReport() {
+        clearContent();
+        showMessage('Loading Full Report...');
+        contentArea.innerHTML = '<div id="full-report-content"><h2>Full Report</h2></div>'; // Add a wrapper for report content
+        const reportContentEl = document.getElementById('full-report-content');
+
+        try {
+            const entityTypes = await fetchAPI('/entity_types');
+            if (!entityTypes || entityTypes.length === 0) {
+                reportContentEl.innerHTML += '<p>No entity types found.</p>';
+                showMessage('');
+                return;
+            }
+
+            // Ensure 'requirements' is first, then sort others alphabetically
+            const sortedEntityTypes = ['requirements', ...entityTypes.filter(et => et !== 'requirements').sort()];
+
+            for (const entityType of sortedEntityTypes) {
+                if (!entityTypes.includes(entityType)) continue; // Skip if 'requirements' wasn't in the original list
+
+                reportContentEl.innerHTML += `<section class="report-section" id="report-section-${entityType}"><h3>${entityType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</h3></section>`;
+                const sectionEl = document.getElementById(`report-section-${entityType}`);
+                
+                try {
+                    const items = currentDataCache[entityType] || await fetchAPI(`/entities/${entityType}`);
+                    currentDataCache[entityType] = items || [];
+
+                    if (!items || items.length === 0) {
+                        sectionEl.innerHTML += '<p>No items found for this entity type.</p>';
+                        continue;
+                    }
+
+                    let sectionHtml = '';
+                    if (entityType === 'requirements') {
+                        items.forEach(item => {
+                            sectionHtml += '<div class="report-requirement-item">';
+                            sectionHtml += `<h4>${escapeHTML(item.id)}: ${escapeHTML(item.name)}</h4>`;
+                            sectionHtml += `<p><strong>Description:</strong> ${escapeHTML(item.description || '').replace(/\n/g, '<br>')}</p>`;
+                            sectionHtml += `<p><strong>Type:</strong> ${escapeHTML(item.type)} | <strong>Priority:</strong> ${escapeHTML(item.priority)} | <strong>Version:</strong> ${escapeHTML(item.version)}</p>`;
+                            if (item.tags && item.tags.length > 0) {
+                                sectionHtml += `<p><strong>Tags:</strong> ${escapeHTML(item.tags.join(', '))}</p>`;
+                            }
+                            if (item.related_goal_id && item.related_goal_id.length > 0) {
+                                sectionHtml += `<p><strong>Related Goal(s):</strong> ${escapeHTML(item.related_goal_id.join(', '))}</p>`;
+                            }
+                             if (item.related_process_id && item.related_process_id.length > 0) {
+                                sectionHtml += `<p><strong>Related Process(es):</strong> ${escapeHTML(item.related_process_id.join(', '))}</p>`;
+                            }
+                            if (item.solution_assessments && item.solution_assessments.length > 0) {
+                                sectionHtml += '<h5>Solution Assessments:</h5><ul>';
+                                item.solution_assessments.forEach(asm => {
+                                    const solution = currentDataCache['solutions']?.find(s => s.id === asm.solution_id);
+                                    const solName = solution ? escapeHTML(solution.name) : `ID: ${escapeHTML(asm.solution_id)}`;
+                                    const asmOpt = ASSESSMENT_OPTIONS.find(opt => opt.value === asm.result);
+                                    const asmDisplay = asmOpt ? `${asmOpt.emoji} ${escapeHTML(asmOpt.display)}` : escapeHTML(asm.result);
+                                    sectionHtml += `<li><strong>${solName}:</strong> ${asmDisplay} ${asm.description ? `<em>(${escapeHTML(asm.description)})</em>` : ''}</li>`;
+                                });
+                                sectionHtml += '</ul>';
+                            }
+                            // Add other key fields as needed
+                            sectionHtml += '</div>';
+                        });
+                    } else { // Generic display for other entities
+                        sectionHtml += '<ul class="report-generic-list">';
+                        items.forEach(item => {
+                            sectionHtml += `<li class="report-generic-item"><strong>${escapeHTML(item.name || item.id)}:</strong>`;
+                            sectionHtml += '<ul>';
+                            for (const key in item) {
+                                if (key !== 'id' && key !== 'name' && item.hasOwnProperty(key) && item[key] !== null && String(item[key]).trim() !== '') {
+                                    let value = item[key];
+                                    if (typeof value === 'object') value = JSON.stringify(value, null, 2);
+                                    sectionHtml += `<li><em>${escapeHTML(key.replace(/_/g, ' '))}:</em> ${escapeHTML(String(value)).replace(/\n/g, '<br>')}</li>`;
+                                }
+                            }
+                            sectionHtml += '</ul></li>';
+                        });
+                        sectionHtml += '</ul>';
+                    }
+                    sectionEl.innerHTML += sectionHtml;
+
+                } catch (error) {
+                    console.error(`Error loading data for ${entityType} in report:`, error);
+                    sectionEl.innerHTML += `<p style="color:red;">Could not load data for ${entityType}.</p>`;
+                }
+            }
+            showMessage('Full report loaded.');
+        } catch (error) {
+            console.error('Error rendering Full Report:', error);
+            showMessage(`Failed to load Full Report: ${error.message}`, true);
+            reportContentEl.innerHTML = `<p style="color:red;">Could not load the Full Report.</p>`;
+        }
+    }
+
+    // --- End of Full Report Dashboard ---
+
+
     // Modify performSearch to clear activeTagFilter and activeVersionFilter
     async function performSearch() {
         activeTagFilter = null; // Clear any active tag filter when performing a search
@@ -1428,7 +1540,8 @@ document.addEventListener('DOMContentLoaded', () => {
         applyVersionFilter,
         clearVersionFilter,
         duplicateItem,       // NEW: Expose duplicateItem
-        loadSolutionAssessmentMatrix // NEW: Expose dashboard loader
+        loadSolutionAssessmentMatrix, // NEW: Expose dashboard loader
+        loadFullReport // NEW: Expose full report loader
     };
 
     // Start the application
