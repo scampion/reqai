@@ -500,6 +500,14 @@
             color: #777;
             font-style: italic;
         }
+        .assessment-matrix td:first-child a { /* Style for the requirement link */
+            color: inherit; /* Inherit color from parent td */
+            text-decoration: none; /* Remove underline */
+        }
+        .assessment-matrix td:first-child a:hover {
+            text-decoration: underline; /* Add underline on hover for discoverability */
+            color: rgb(40, 50, 150); /* Optional: change color on hover */
+        }
 
     </style>
 </head>

@@ -1329,7 +1329,9 @@ document.addEventListener('DOMContentLoaded', () => {
             requirements.forEach(req => {
                 // Use requirement name if available, otherwise fallback to ID.
                 const reqDisplayName = req.name ? escapeHTML(req.name) : `<em>${escapeHTML(req.id)} (No Name)</em>`;
-                html += `<tr><td>${reqDisplayName}</td>`; 
+                // NEW: Make the requirement title a link to its edit form
+                const reqLink = `<a href="#" onclick="app.renderForm('requirements', '${escapeHTML(req.id)}'); return false;">${reqDisplayName}</a>`;
+                html += `<tr><td>${reqLink}</td>`; 
                 solutions.forEach(sol => {
                     const assessment = req.solution_assessments?.find(asm => asm.solution_id === sol.id);
                     // Default to "Not Assessed" emoji if no assessment or no result
