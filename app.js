@@ -1329,7 +1329,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             let html = '<h2>Solution Assessment Matrix</h2>';
             html += '<table class="assessment-matrix"><thead><tr>'; // Added class for styling
-            html += '<th>Requirement Title</th>'; // First column header for requirement names/titles
+            html += '<th>ID</th>'; // NEW: First column for Requirement ID
+            html += '<th>Requirement Title</th>'; 
             solutions.forEach(sol => {
                 html += `<th>${escapeHTML(sol.name)}</th>`;
             });
@@ -1340,7 +1341,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 const reqDisplayName = req.name ? escapeHTML(req.name) : `<em>${escapeHTML(req.id)} (No Name)</em>`;
                 // NEW: Make the requirement title a link to its edit form
                 const reqLink = `<a href="#" onclick="app.renderForm('requirements', '${escapeHTML(req.id)}'); return false;">${reqDisplayName}</a>`;
-                html += `<tr><td>${reqLink}</td>`; 
+                html += `<tr>`;
+                html += `<td>${escapeHTML(req.id)}</td>`; // NEW: Add cell for Requirement ID
+                html += `<td>${reqLink}</td>`; 
                 solutions.forEach(sol => {
                     const assessment = req.solution_assessments?.find(asm => asm.solution_id === sol.id);
                     // Default to "Not Assessed" emoji if no assessment or no result
