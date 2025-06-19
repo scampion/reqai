@@ -12,9 +12,7 @@
             font-family: 'Inter', sans-serif; 
             font-weight: 100; 
             margin: 20px; 
-            display: flex; 
-<!--            background-color: rgb(53, 61, 62);-->
-<!--            color: rgb(220, 210, 205);-->
+            display: flex;
         }
         h1, h2, h3 {
             font-family: 'Bebas Neue', sans-serif;
@@ -23,17 +21,36 @@
             color: rgb(60, 60, 60);
         }
         nav { 
-            width: 200px; 
+            width: 220px; /* Slightly wider for section titles */
             border-right: 1px solid rgb(90, 105, 107); 
             padding-right: 20px; 
             margin-right: 20px; 
         }
-        nav h2 { margin-top: 0; }
-        nav ul { list-style: none; padding: 0; width: 180px; }
+        /* nav h2 { margin-top: 0; } Removed as we use .nav-section-title */
+        nav ul { list-style: none; padding: 0; width: 100%; } /* Width 100% of nav */
+        
+        .nav-section-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-weight: 400;
+            letter-spacing: 0.5px;
+            color: rgb(100, 100, 100); /* Darker grey for section titles */
+            font-size: 0.9em;
+            text-transform: uppercase;
+            padding: 10px 5px 5px 5px; /* Padding around the title */
+            margin-top: 10px;
+            border-bottom: 1px solid rgb(180, 190, 192); /* Subtle separator */
+        }
+        .nav-section-title:first-child {
+            margin-top: 0;
+        }
+        .nav-section-title span {
+             display: block; /* Ensure it takes full width for padding/margin */
+        }
+
         nav li button {
             display: block; 
-            width: 100%; 
-            padding: 18px;
+            width: calc(100% - 10px); /* Adjust width considering margin */
+            padding: 12px 15px; /* Adjusted padding */
             margin: 5px;
             background: rgb(90, 105, 107);
             border: 1px solid rgb(130, 145, 147);
@@ -42,8 +59,9 @@
             text-align: left; 
             cursor: pointer;
             font-weight: 200;
-            font-size: 1em;
+            font-size: 0.95em; /* Slightly adjusted font size */
             font-family: 'Inter', sans-serif;
+            box-sizing: border-box;
         }
         nav li button:hover, nav li button.active { 
             background: rgb(130, 145, 147); 
@@ -454,13 +472,42 @@
             font-style: italic;
             color: rgb(190, 180, 175);
         }
+
+        /* Styles for Assessment Matrix Table */
+        .assessment-matrix {
+            margin-top: 15px;
+            border: 1px solid rgb(130, 145, 147); /* Ensure table has a border */
+        }
+        .assessment-matrix th {
+            background-color: rgb(80, 95, 97); /* Slightly different header for matrix */
+            color: rgb(230, 220, 215);
+            padding: 10px;
+            white-space: nowrap; /* Prevent solution names from wrapping too soon */
+        }
+        .assessment-matrix td {
+            padding: 10px;
+            vertical-align: middle; /* Center emoji vertically */
+        }
+        .assessment-matrix .assessment-cell {
+            text-align: center;
+            font-size: 1.3em; /* Make emojis a bit larger */
+        }
+        .assessment-matrix td:first-child { /* Requirement name/title column */
+            font-weight: 300;
+            color: rgb(63, 71, 72); /* Match card description color if desired */
+        }
+        .assessment-matrix em { /* For "(No Name)" text */
+            color: #777;
+            font-style: italic;
+        }
+
     </style>
 </head>
 <body>
     <nav>
-        <h2>Entities</h2>
-        <ul id="entity-nav-list">
-            <li>Loading...</li>
+        <!-- Removed h2 Entities, will be managed by JS-generated section titles -->
+        <ul id="nav-list"> <!-- MODIFIED ID -->
+            <li>Loading navigation...</li>
         </ul>
     </nav>
 

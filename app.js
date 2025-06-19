@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const API_BASE_URL = 'http://localhost:8000/api'; // Adjust if your API runs elsewhere
-    const entityNavList = document.getElementById('entity-nav-list');
+    const navList = document.getElementById('nav-list'); // MODIFIED: More generic name for the navigation list
     const contentArea = document.getElementById('content');
     const messagesArea = document.getElementById('messages');
     const downloadRtfButton = document.getElementById('download-rtf-button');
@@ -42,12 +42,19 @@ document.addEventListener('DOMContentLoaded', () => {
         contentArea.innerHTML = ''; // Clear previous content
     }
 
-    function setActiveNavButton(entityType) {
-         // Remove active class from all buttons
-        const buttons = entityNavList.querySelectorAll('button');
+    function setActiveNavButton(viewIdentifier, type = 'entity') { // type can be 'entity' or 'dashboard'
+         // Remove active class from all buttons in the nav list
+        const buttons = navList.querySelectorAll('button');
         buttons.forEach(btn => btn.classList.remove('active'));
+        
         // Add active class to the clicked button
-        const activeButton = entityNavList.querySelector(`button[data-entity="${entityType}"]`);
+        let activeButton;
+        if (type === 'entity') {
+            activeButton = navList.querySelector(`button[data-entity="${viewIdentifier}"]`);
+        } else if (type === 'dashboard') {
+            activeButton = navList.querySelector(`button[data-dashboard="${viewIdentifier}"]`);
+        }
+
         if (activeButton) {
             activeButton.classList.add('active');
         }
@@ -84,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderEntityList(entityType, items) {
         clearContent();
         currentEntityType = entityType; // Set current type
-        setActiveNavButton(entityType);
+        setActiveNavButton(entityType, 'entity');
 
         const title = entityType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
         let html = `<h2>${title}</h2>`;
@@ -399,7 +406,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function renderForm(entityType, itemId = null) {
         clearContent();
         currentEntityType = entityType; // Ensure type is set
-        setActiveNavButton(entityType); // Keep nav active
+        setActiveNavButton(entityType, 'entity'); // Keep nav active
         showMessage('Loading form...'); // Show loading message
 
         const isEdit = itemId !== null;
@@ -912,11 +919,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function initialize() {
         try {
+            // Clear 'Loading...' from the main nav list
+            navList.innerHTML = '';
+
+            // --- NEW: Add Dashboards Section ---
+            const dashboardsTitle = document.createElement('li');
+            dashboardsTitle.className = 'nav-section-title';
+            dashboardsTitle.innerHTML = '<span>Dashboards</span>';
+            navList.appendChild(dashboardsTitle);
+
+            const samLi = document.createElement('li');
+            const samButton = document.createElement('button');
+            samButton.textContent = '📊 Solution Assessment Matrix';
+            samButton.dataset.dashboard = 'solution_assessment_matrix';
+            samButton.onclick = () => app.loadSolutionAssessmentMatrix();
+            samLi.appendChild(samButton);
+            navList.appendChild(samLi);
+            // --- End of NEW Dashboards Section ---
+
+            // --- Add Entities Section ---
+            const entitiesTitle = document.createElement('li');
+            entitiesTitle.className = 'nav-section-title';
+            entitiesTitle.innerHTML = '<span>Entities</span>';
+            navList.appendChild(entitiesTitle);
+
             const entityTypes = await fetchAPI('/entity_types');
-            entityNavList.innerHTML = ''; // Clear 'Loading...'
             const emojiMap = {
                 'stakeholders': '👥',
-                'goals_and_objectives': '🎯', 
+                'goals_and_objectives': '🎯',
                 'business_processes': '🔄',
                 'requirements': '📋',
                 'systems_and_applications': '💻',
@@ -933,24 +963,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 button.dataset.entity = type; // Store entity type in data attribute
                 button.onclick = () => loadEntityList(type);
                 li.appendChild(button);
-                entityNavList.appendChild(li);
+                navList.appendChild(li); // Append to the main nav list
             });
 
-            // --- NEW: Load requirements by default ---
-            if (entityTypes.includes('requirements')) {
+            // --- MODIFIED: Load Solution Assessment Matrix by default ---
+            if (typeof app.loadSolutionAssessmentMatrix === 'function') {
+                 app.loadSolutionAssessmentMatrix();
+            } else if (entityTypes.includes('requirements')) { // Fallback if matrix function not ready (should not happen)
                 loadEntityList('requirements');
             } else if (entityTypes.length > 0) {
-                // Fallback to loading the first entity type if 'requirements' doesn't exist
                 loadEntityList(entityTypes[0]);
             } else {
-                contentArea.innerHTML = '<p>No entity types found. Cannot load default view.</p>';
+                contentArea.innerHTML = '<p>No entity types or dashboards found. Cannot load default view.</p>';
             }
-            // --- End of NEW ---
+            // --- End of MODIFIED Default Load ---
 
         } catch (error) {
-            entityNavList.innerHTML = '<li>Error loading entity types. Is the API running?</li>';
+            navList.innerHTML = '<li>Error loading navigation. Is the API running?</li>'; // Update error message target
             console.error("Initialization failed:", error);
-            showMessage("Could not load entity types from API.", true);
+            showMessage("Could not load navigation items from API.", true);
         }
 
         // --- NEW: Add listener for Download button ---
@@ -1250,6 +1281,83 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     // --- End of Duplicate Item Function ---
 
+
+    // --- NEW: Solution Assessment Matrix Dashboard ---
+    async function loadSolutionAssessmentMatrix() {
+        currentEntityType = null; // Clear current entity type as we are viewing a dashboard
+        setActiveNavButton('solution_assessment_matrix', 'dashboard');
+        await renderSolutionAssessmentMatrix();
+    }
+
+    async function renderSolutionAssessmentMatrix() {
+        clearContent();
+        showMessage('Loading Solution Assessment Matrix...');
+
+        try {
+            // Fetch requirements and solutions data concurrently
+            const [requirementsData, solutionsData] = await Promise.all([
+                currentDataCache['requirements'] ? Promise.resolve(currentDataCache['requirements']) : fetchAPI('/entities/requirements'),
+                currentDataCache['solutions'] ? Promise.resolve(currentDataCache['solutions']) : fetchAPI('/entities/solutions')
+            ]);
+
+            // Cache fetched data
+            currentDataCache['requirements'] = requirementsData || [];
+            currentDataCache['solutions'] = solutionsData || [];
+
+            const requirements = currentDataCache['requirements'];
+            const solutions = currentDataCache['solutions'];
+
+            if (!requirements || requirements.length === 0) {
+                contentArea.innerHTML = '<h2>Solution Assessment Matrix</h2><p>No requirements found to display in the matrix.</p>';
+                showMessage('');
+                return;
+            }
+            if (!solutions || solutions.length === 0) {
+                contentArea.innerHTML = '<h2>Solution Assessment Matrix</h2><p>No solutions found to display in the matrix.</p>';
+                showMessage('');
+                return;
+            }
+
+            let html = '<h2>Solution Assessment Matrix</h2>';
+            html += '<table class="assessment-matrix"><thead><tr>'; // Added class for styling
+            html += '<th>Requirement Title</th>'; // First column header for requirement names/titles
+            solutions.forEach(sol => {
+                html += `<th>${escapeHTML(sol.name)}</th>`;
+            });
+            html += '</tr></thead><tbody>';
+
+            requirements.forEach(req => {
+                // Use requirement name if available, otherwise fallback to ID.
+                const reqDisplayName = req.name ? escapeHTML(req.name) : `<em>${escapeHTML(req.id)} (No Name)</em>`;
+                html += `<tr><td>${reqDisplayName}</td>`; 
+                solutions.forEach(sol => {
+                    const assessment = req.solution_assessments?.find(asm => asm.solution_id === sol.id);
+                    // Default to "Not Assessed" emoji if no assessment or no result
+                    let emoji = ASSESSMENT_OPTIONS.find(opt => opt.value === "")?.emoji || '❓'; 
+                    if (assessment && assessment.result) {
+                        const option = ASSESSMENT_OPTIONS.find(opt => opt.value === assessment.result);
+                        if (option) {
+                            emoji = option.emoji;
+                        }
+                    }
+                    html += `<td class="assessment-cell">${emoji}</td>`; // Added class for styling cell content
+                });
+                html += '</tr>';
+            });
+
+            html += '</tbody></table>';
+            contentArea.innerHTML = html;
+            showMessage(''); // Clear loading message
+
+        } catch (error) {
+            console.error('Error rendering Solution Assessment Matrix:', error);
+            showMessage(`Failed to load Solution Assessment Matrix: ${error.message}`, true);
+            contentArea.innerHTML = `<p style="color:red;">Could not load the Solution Assessment Matrix.</p>`;
+        }
+    }
+    // --- End of Solution Assessment Matrix Dashboard ---
+
+
     // Modify performSearch to clear activeTagFilter and activeVersionFilter
     async function performSearch() {
         activeTagFilter = null; // Clear any active tag filter when performing a search
@@ -1317,7 +1425,8 @@ document.addEventListener('DOMContentLoaded', () => {
         clearTagFilter,
         applyVersionFilter,
         clearVersionFilter,
-        duplicateItem       // NEW: Expose duplicateItem
+        duplicateItem,       // NEW: Expose duplicateItem
+        loadSolutionAssessmentMatrix // NEW: Expose dashboard loader
     };
 
     // Start the application
