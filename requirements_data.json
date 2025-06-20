@@ -101,17 +101,39 @@
       "name": "Test collect datat ",
       "author": "",
       "tags": [],
-      "solution_assessments": []
+      "solution_assessments": [
+        {
+          "solution_id": "SOL_1",
+          "result": "available",
+          "description": ""
+        },
+        {
+          "solution_id": "SOL_2",
+          "result": "partially_available",
+          "description": ""
+        }
+      ],
+      "assessment_result_SOL_1": "available",
+      "assessment_description_SOL_1": "",
+      "assessment_result_SOL_2": "partially_available",
+      "assessment_description_SOL_2": ""
     },
     {
       "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,",
       "type": "",
-      "priority": "",
+      "priority": null,
       "source": "",
       "related_goal_id": "",
       "related_process_id": "",
       "id": "REQ004",
-      "solution_assessments": []
+      "solution_assessments": [],
+      "name": "TEST",
+      "author": "",
+      "tags": [],
+      "assessment_result_SOL_1": null,
+      "assessment_description_SOL_1": "",
+      "assessment_result_SOL_2": null,
+      "assessment_description_SOL_2": ""
     },
     {
       "description": "Implement a new CRM system 2",
@@ -252,6 +274,11 @@
       "name": "hadoc",
       "description": "",
       "id": "SOL_1"
+    },
+    {
+      "name": "hadoc 2",
+      "description": "",
+      "id": "SOL_2"
     }
   ]
 }
