@@ -482,6 +482,12 @@ document.addEventListener('DOMContentLoaded', () => {
                  const label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
                  const fieldId = `field_${key}`;
 
+                 // NEW: Skip keys that are handled by the dedicated solution assessment section
+                 // to prevent duplicate form elements.
+                 if (key.startsWith('assessment_result_') || key.startsWith('assessment_description_')) {
+                     return; // Skip this key
+                 }
+
                  fieldsHtml += `<div><label for="${fieldId}">${label}:</label>`;
 
                 // --- Dropdown for Related Goal ID (Multiple Select) ---

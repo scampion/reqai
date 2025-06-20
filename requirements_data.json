@@ -112,11 +112,7 @@
           "result": "partially_available",
           "description": ""
         }
-      ],
-      "assessment_result_SOL_1": "available",
-      "assessment_description_SOL_1": "",
-      "assessment_result_SOL_2": "partially_available",
-      "assessment_description_SOL_2": ""
+      ]
     },
     {
       "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,",
@@ -129,11 +125,7 @@
       "solution_assessments": [],
       "name": "TEST",
       "author": "",
-      "tags": [],
-      "assessment_result_SOL_1": null,
-      "assessment_description_SOL_1": "",
-      "assessment_result_SOL_2": null,
-      "assessment_description_SOL_2": ""
+      "tags": []
     },
     {
       "description": "Implement a new CRM system 2",
