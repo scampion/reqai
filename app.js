@@ -863,39 +863,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     throw new Error(`No data returned for ${entityType}`);
                 }
                 currentDataCache[entityType] = data;
-
-                // NEW: If requirements data is loaded/reloaded, update cached tags and versions
-                if (entityType === 'requirements') {
-                    const allRequirementsForFilters = data; // Use the freshly fetched data
-                    const tagCounts = new Map(); // To store tag counts
-
-                    if (allRequirementsForFilters) {
-                        allRequirementsForFilters.forEach(item => {
-                            if (item.tags && Array.isArray(item.tags)) {
-                                item.tags.forEach(tag => {
-                                    const trimmedTag = String(tag).trim();
-                                    if (trimmedTag) {
-                                        tagCounts.set(trimmedTag, (tagCounts.get(trimmedTag) || 0) + 1);
-                                    }
-                                });
-                            }
-                        });
-                    }
-                    // Convert map to array of objects and sort by tag name
-                    cachedSortedUniqueTags = Array.from(tagCounts.entries())
-                        .map(([tag, count]) => ({ tag, count }))
-                        .sort((a, b) => a.tag.localeCompare(b.tag));
-
-                    const uniqueVersionsSet = new Set();
-                    if (allRequirementsForFilters) {
-                        allRequirementsForFilters.forEach(item => {
-                            if (item.version && String(item.version).trim()) {
-                                uniqueVersionsSet.add(String(item.version).trim());
-                            }
-                        });
-                    }
-                    cachedSortedUniqueVersions = Array.from(uniqueVersionsSet).sort();
-                }
             }
             
             const items = currentDataCache[entityType];
@@ -903,6 +870,41 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(`No items found for ${entityType}`);
             }
 
+            // NEW: If requirements data is loaded/reloaded, update cached tags and versions
+            // This block is now outside the 'if (!currentDataCache[entityType])'
+            // and will run every time loadEntityList is called for requirements,
+            // using 'items' (which is currentDataCache[entityType]) as the source.
+            if (entityType === 'requirements' && items) { 
+                const allRequirementsForFilters = items; // Use 'items'
+                const tagCounts = new Map(); 
+
+                if (allRequirementsForFilters && allRequirementsForFilters.length > 0) {
+                    allRequirementsForFilters.forEach(item => {
+                        if (item.tags && Array.isArray(item.tags)) {
+                            item.tags.forEach(tag => {
+                                const trimmedTag = String(tag).trim();
+                                if (trimmedTag) {
+                                    tagCounts.set(trimmedTag, (tagCounts.get(trimmedTag) || 0) + 1);
+                                }
+                            });
+                        }
+                    });
+                }
+                cachedSortedUniqueTags = Array.from(tagCounts.entries())
+                    .map(([tag, count]) => ({ tag, count }))
+                    .sort((a, b) => a.tag.localeCompare(b.tag));
+
+                const uniqueVersionsSet = new Set();
+                if (allRequirementsForFilters && allRequirementsForFilters.length > 0) {
+                    allRequirementsForFilters.forEach(item => {
+                        if (item.version && String(item.version).trim()) {
+                            uniqueVersionsSet.add(String(item.version).trim());
+                        }
+                    });
+                }
+                cachedSortedUniqueVersions = Array.from(uniqueVersionsSet).sort();
+            }
+            
             // Render the list
             renderEntityList(entityType, items);
             showMessage(''); // Clear loading message
