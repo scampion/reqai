@@ -288,9 +288,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     html += `</div>`; // end card-relations
 
                     // Other Details Section (collapsible or limited height might be good for cards)
-                    const explicitlyHandledKeys = ['id', 'name', 'description', 'type', 'priority', 'version', 'tags', 'author', 'related_goal_id', 'related_process_id', 'similarityScore'];
+                    const explicitlyHandledKeys = ['id', 'name', 'description', 'type', 'priority', 'version', 'tags', 'author', 'related_goal_id', 'related_process_id', 'similarityScore', 'solution_assessments'];
                     const otherDetailsKeys = Object.keys(item).filter(key => 
-                        !explicitlyHandledKeys.includes(key) && 
+                        !explicitlyHandledKeys.includes(key) &&
+                        !key.startsWith('assessment_result_') &&
+                        !key.startsWith('assessment_description_') &&
                         item[key] !== null && 
                         typeof item[key] !== 'undefined' && 
                         String(item[key]).trim() !== ''
@@ -315,23 +317,23 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
 
                     // --- NEW: Display Solution Assessments in Card ---
-                    if (item.solution_assessments && Array.isArray(item.solution_assessments) && item.solution_assessments.length > 0) {
-                        html += `<div class="card-solution-assessments"><h4>Solution Assessments:</h4>`;
-                        item.solution_assessments.forEach(assessment => {
-                            const solution = currentDataCache['solutions']?.find(s => s.id === assessment.solution_id);
-                            const solutionName = solution ? escapeHTML(solution.name) : `ID: ${escapeHTML(assessment.solution_id)}`;
-                            const assessmentOption = ASSESSMENT_OPTIONS.find(opt => opt.value === assessment.result);
-                            const emoji = assessmentOption ? assessmentOption.emoji : '❓';
+                    // if (item.solution_assessments && Array.isArray(item.solution_assessments) && item.solution_assessments.length > 0) {
+                    //     html += `<div class="card-solution-assessments"><h4>Solution Assessments:</h4>`;
+                    //     item.solution_assessments.forEach(assessment => {
+                    //         const solution = currentDataCache['solutions']?.find(s => s.id === assessment.solution_id);
+                    //         const solutionName = solution ? escapeHTML(solution.name) : `ID: ${escapeHTML(assessment.solution_id)}`;
+                    //         const assessmentOption = ASSESSMENT_OPTIONS.find(opt => opt.value === assessment.result);
+                    //         const emoji = assessmentOption ? assessmentOption.emoji : '❓';
                             
-                            html += `<div class="assessment-entry" style="margin-bottom: 5px; padding-left: 10px; border-left: 2px solid #eee;">`;
-                            html += `<p><strong>${solutionName}:</strong> ${emoji} ${escapeHTML(assessmentOption?.display || assessment.result)}</p>`;
-                            if (assessment.description) {
-                                html += `<p style="font-size: 0.9em; margin-left: 15px;"><em>${escapeHTML(assessment.description).replace(/\n/g, '<br>')}</em></p>`;
-                            }
-                            html += `</div>`;
-                        });
-                        html += `</div>`; // end card-solution-assessments
-                    }
+                    //         html += `<div class="assessment-entry" style="margin-bottom: 5px; padding-left: 10px; border-left: 2px solid #eee;">`;
+                    //         html += `<p><strong>${solutionName}:</strong> ${emoji} ${escapeHTML(assessmentOption?.display || assessment.result)}</p>`;
+                    //         if (assessment.description) {
+                    //             html += `<p style="font-size: 0.9em; margin-left: 15px;"><em>${escapeHTML(assessment.description).replace(/\n/g, '<br>')}</em></p>`;
+                    //         }
+                    //         html += `</div>`;
+                    //     });
+                    //     html += `</div>`; // end card-solution-assessments
+                    // }
                     // --- End of Display Solution Assessments ---
 
                     // Card Actions
@@ -1300,6 +1302,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // --- NEW: Solution Assessment Matrix Dashboard ---
+    let matrixSortKey = 'id'; // Default sort key
+    let matrixSortDirection = 'asc'; // Default sort direction
+
+    function handleMatrixSort(newSortKey) {
+        if (matrixSortKey === newSortKey) {
+            // If same column is clicked, toggle direction
+            matrixSortDirection = matrixSortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            // If new column is clicked, set new key and default to ascending
+            matrixSortKey = newSortKey;
+            matrixSortDirection = 'asc';
+        }
+        // Re-render the matrix with the new sort order
+        renderSolutionAssessmentMatrix();
+    }
+
     async function loadSolutionAssessmentMatrix() {
         currentEntityType = null; // Clear current entity type as we are viewing a dashboard
         setActiveNavButton('solution_assessment_matrix', 'dashboard');
@@ -1335,12 +1353,71 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            // --- Sorting Logic ---
+            const priorityOrder = {
+                "Must Have": 1,
+                "High Priority": 2,
+                "Medium Priority": 3,
+                "Low Priority": 4,
+                "Cherry on the Cake": 5
+            };
+            const assessmentOrder = {
+                "available": 1,
+                "partially_available": 2,
+                "not_available": 3,
+                "": 4 // Not Assessed
+            };
+
+            requirements.sort((a, b) => {
+                let valA, valB;
+
+                switch (matrixSortKey) {
+                    case 'id':
+                        valA = a.id;
+                        valB = b.id;
+                        break;
+                    case 'title':
+                        valA = a.name || '';
+                        valB = b.name || '';
+                        break;
+                    case 'priority':
+                        valA = priorityOrder[a.priority] || 99;
+                        valB = priorityOrder[b.priority] || 99;
+                        break;
+                    default: // This handles sorting by solution ID
+                        const assessmentA = a.solution_assessments?.find(asm => asm.solution_id === matrixSortKey);
+                        const assessmentB = b.solution_assessments?.find(asm => asm.solution_id === matrixSortKey);
+                        valA = assessmentOrder[assessmentA?.result || ""] || 99;
+                        valB = assessmentOrder[assessmentB?.result || ""] || 99;
+                        break;
+                }
+
+                let comparison = 0;
+                if (valA > valB) {
+                    comparison = 1;
+                } else if (valA < valB) {
+                    comparison = -1;
+                }
+
+                return matrixSortDirection === 'asc' ? comparison : -comparison;
+            });
+            // --- End Sorting Logic ---
+
             let html = '<h2>Solution Assessment Matrix</h2>';
             html += '<table class="assessment-matrix"><thead><tr>'; // Added class for styling
-            html += '<th>ID</th>'; // NEW: First column for Requirement ID
-            html += '<th>Requirement Title</th>'; 
+
+            const getSortIndicator = (key) => {
+                if (matrixSortKey === key) {
+                    return matrixSortDirection === 'asc' ? ' ▲' : ' ▼';
+                }
+                return '';
+            };
+
+            html += `<th onclick="app.handleMatrixSort('id')">ID${getSortIndicator('id')}</th>`;
+            html += `<th onclick="app.handleMatrixSort('priority')">Priority${getSortIndicator('priority')}</th>`;
+            html += `<th onclick="app.handleMatrixSort('title')">Requirement Title${getSortIndicator('title')}</th>`;
             solutions.forEach(sol => {
-                html += `<th>${escapeHTML(sol.name)}</th>`;
+                html += `<th onclick="app.handleMatrixSort('${sol.id}')">${escapeHTML(sol.name)}${getSortIndicator(sol.id)}</th>`;
             });
             html += '</tr></thead><tbody>';
 
@@ -1349,8 +1426,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 const reqDisplayName = req.name ? escapeHTML(req.name) : `<em>${escapeHTML(req.id)} (No Name)</em>`;
                 // NEW: Make the requirement title a link to its edit form
                 const reqLink = `<a href="#" onclick="app.renderForm('requirements', '${escapeHTML(req.id)}'); return false;">${reqDisplayName}</a>`;
+                
+                let priorityDisplay = '';
+                if (req.priority) {
+                    const priorityEmojis = {
+                        "Must Have": "⚠️",
+                        "High Priority": "⭐",
+                        "Medium Priority": "⚪",
+                        "Low Priority": "➖",
+                        "Cherry on the Cake": "✨"
+                    };
+                    priorityDisplay = priorityEmojis[req.priority] || "";
+                }
+
                 html += `<tr>`;
                 html += `<td>${escapeHTML(req.id)}</td>`; // NEW: Add cell for Requirement ID
+                html += `<td class="assessment-cell">${priorityDisplay}</td>`;
                 html += `<td>${reqLink}</td>`; 
                 solutions.forEach(sol => {
                     const assessment = req.solution_assessments?.find(asm => asm.solution_id === sol.id);
@@ -1588,7 +1679,8 @@ document.addEventListener('DOMContentLoaded', () => {
         clearVersionFilter,
         duplicateItem,       // NEW: Expose duplicateItem
         loadSolutionAssessmentMatrix, // NEW: Expose dashboard loader
-        loadFullReport // NEW: Expose full report loader
+        loadFullReport, // NEW: Expose full report loader
+        handleMatrixSort
     };
 
     // Start the application
