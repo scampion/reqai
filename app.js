@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let isIndexingInProgress = false; // NEW: Flag to track if indexing is ongoing
     const EMBEDDINGS_CACHE_KEY = 'requirementsEmbeddingsCache'; // NEW: localStorage key for embeddings
     const ASSESSMENT_OPTIONS = [ // NEW: Assessment options
-        { value: "", display: "-- Not Assessed --", emoji: "❓" },
+        { value: "", display: "-- Not Assessed --", emoji: " " },
         { value: "available", display: "Available", emoji: "✅" },
         { value: "partially_available", display: "Partially Available", emoji: "🟡" },
         { value: "not_available", display: "Not Available", emoji: "🔴" }
@@ -1445,8 +1445,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 html += `<td>${reqLink}</td>`; 
                 solutions.forEach(sol => {
                     const assessment = req.solution_assessments?.find(asm => asm.solution_id === sol.id);
-                    // Default to "Not Assessed" emoji if no assessment or no result
-                    let emoji = ASSESSMENT_OPTIONS.find(opt => opt.value === "")?.emoji || '❓'; 
+                    // Default to "Not Assessed" emoji if no assessment or no result ❓
+                    let emoji = ASSESSMENT_OPTIONS.find(opt => opt.value === "")?.emoji || ' ';
                     if (assessment && assessment.result) {
                         const option = ASSESSMENT_OPTIONS.find(opt => opt.value === assessment.result);
                         if (option) {
