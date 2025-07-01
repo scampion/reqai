@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { value: "", display: "-- Not Assessed --", emoji: " " },
         { value: "available", display: "Available", emoji: "✅" },
         { value: "partially_available", display: "Partially Available", emoji: "🟡" },
-        { value: "not_available", display: "Not Available", emoji: "🔴" }
+        { value: "not_available", display: "Not Available", emoji: "❎" }
     ];
 
     // --- Utility Functions ---
