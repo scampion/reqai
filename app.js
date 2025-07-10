@@ -1624,7 +1624,11 @@ document.addEventListener('DOMContentLoaded', () => {
                                     const solName = solution ? escapeHTML(solution.name) : `ID: ${escapeHTML(asm.solution_id)}`;
                                     const asmOpt = ASSESSMENT_OPTIONS.find(opt => opt.value === asm.result);
                                     const asmDisplay = asmOpt ? `${asmOpt.emoji} ${escapeHTML(asmOpt.display)}` : escapeHTML(asm.result);
-                                    sectionHtml += `<li><strong>${solName}:</strong> ${asmDisplay} ${asm.description ? `<em>(${escapeHTML(asm.description)})</em>` : ''}</li>`;
+                                    // asm.description is in markdown, so we transform it to HTML
+                                    const showdownConverter = new showdown.Converter();
+                                    const asmDescriptionHtml = asm.description ? showdownConverter.makeHtml(asm.description) : '';
+                                    sectionHtml += `<li><strong>${solName}:</strong> ${asmDisplay}<br><em>${asmDescriptionHtml}</em></li>`;
+//                                    sectionHtml += `<li><strong>${solName}:</strong> ${asmDisplay} ${asm.description ? `<em>(${escapeHTML(asm.description)})</em>` : ''}</li>`;
                                 });
                                 sectionHtml += '</ul>';
                             }
