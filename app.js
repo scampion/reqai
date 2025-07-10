@@ -1538,15 +1538,38 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function renderFullReport() {
+        // Preserve toggle state across re-renders by reading it from the DOM before clearing
+        const wasChecked = document.getElementById('include-assessments-toggle')?.checked ?? true;
+
         clearContent();
         showMessage('Loading Full Report...');
-        contentArea.innerHTML = '<div id="full-report-content"><h2>Full Report</h2></div>'; // Add a wrapper for report content
+
+        // Create the main structure including the toggle control
+        contentArea.innerHTML = `
+            <div id="full-report-container">
+                <h2>Full Report</h2>
+                <div class="report-controls" style="margin-bottom: 15px; padding: 10px; background-color: #f0f0f0; border-radius: 5px;">
+                    <label for="include-assessments-toggle" style="cursor: pointer; user-select: none;">
+                        <input type="checkbox" id="include-assessments-toggle" ${wasChecked ? 'checked' : ''}>
+                        Include Solution Assessments
+                    </label>
+                </div>
+                <div id="full-report-content"></div>
+            </div>
+        `;
+        
         const reportContentEl = document.getElementById('full-report-content');
+        const toggleEl = document.getElementById('include-assessments-toggle');
+
+        // When toggle changes, re-render the whole report view. Caching prevents re-fetching.
+        toggleEl.addEventListener('change', renderFullReport);
+
+        const includeAssessments = toggleEl.checked;
 
         try {
             const entityTypes = await fetchAPI('/entity_types');
             if (!entityTypes || entityTypes.length === 0) {
-                reportContentEl.innerHTML += '<p>No entity types found.</p>';
+                reportContentEl.innerHTML = '<p>No entity types found.</p>'; // Render inside content div
                 showMessage('');
                 return;
             }
@@ -1555,10 +1578,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const sortedEntityTypes = ['requirements', ...entityTypes.filter(et => et !== 'requirements').sort()];
 
             for (const entityType of sortedEntityTypes) {
-                if (!entityTypes.includes(entityType)) continue; // Skip if 'requirements' wasn't in the original list
+                if (!entityTypes.includes(entityType)) continue;
 
-                reportContentEl.innerHTML += `<section class="report-section" id="report-section-${entityType}"><h3>${entityType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</h3></section>`;
-                const sectionEl = document.getElementById(`report-section-${entityType}`);
+                // Create section container and append it
+                const sectionEl = document.createElement('section');
+                sectionEl.className = 'report-section';
+                sectionEl.id = `report-section-${entityType}`;
+                sectionEl.innerHTML = `<h3>${entityType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</h3>`;
+                reportContentEl.appendChild(sectionEl);
                 
                 try {
                     const items = currentDataCache[entityType] || await fetchAPI(`/entities/${entityType}`);
@@ -1578,7 +1605,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 currentDataCache['solutions'] = solutionsData || [];
                             } catch (solError) {
                                 console.warn('Could not load solutions data for report details:', solError);
-                                currentDataCache['solutions'] = []; // Default to empty if fetch fails
+                                currentDataCache['solutions'] = [];
                             }
                         }
 
@@ -1599,7 +1626,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                         goalText = escapeHTML(item.related_goal_id.join(', '));
                                     }
                                 } else if (typeof item.related_goal_id === 'string' && item.related_goal_id.trim() !== '') {
-                                    goalText = escapeHTML(item.related_goal_id); // Display string directly
+                                    goalText = escapeHTML(item.related_goal_id);
                                 }
                                 sectionHtml += `<p><strong>Related Goal(s):</strong> ${goalText}</p>`;
                             } else {
@@ -1614,14 +1641,15 @@ document.addEventListener('DOMContentLoaded', () => {
                                         processText = escapeHTML(item.related_process_id.join(', '));
                                     }
                                 } else if (typeof item.related_process_id === 'string' && item.related_process_id.trim() !== '') {
-                                    processText = escapeHTML(item.related_process_id); // Display string directly
+                                    processText = escapeHTML(item.related_process_id);
                                 }
                                 sectionHtml += `<p><strong>Related Process(es):</strong> ${processText}</p>`;
                             } else {
                                 sectionHtml += `<p><strong>Related Process(es):</strong> None</p>`;
                             }
 
-                            if (item.solution_assessments && item.solution_assessments.length > 0) {
+                            // Conditionally include assessments based on the toggle
+                            if (includeAssessments && item.solution_assessments && item.solution_assessments.length > 0) {
                                 sectionHtml += '<h5>Solution Assessments:</h5><ul>';
                                 item.solution_assessments.forEach(asm => {
                                     const solution = currentDataCache['solutions']?.find(s => s.id === asm.solution_id);
@@ -1632,7 +1660,6 @@ document.addEventListener('DOMContentLoaded', () => {
                                     const showdownConverter = new showdown.Converter();
                                     const asmDescriptionHtml = asm.description ? showdownConverter.makeHtml(asm.description) : '';
                                     sectionHtml += `<li><strong>${solName}:</strong> ${asmDisplay}<br><em>${asmDescriptionHtml}</em></li>`;
-//                                    sectionHtml += `<li><strong>${solName}:</strong> ${asmDisplay} ${asm.description ? `<em>(${escapeHTML(asm.description)})</em>` : ''}</li>`;
                                 });
                                 sectionHtml += '</ul>';
                             }
@@ -1659,7 +1686,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 } catch (error) {
                     console.error(`Error loading data for ${entityType} in report:`, error);
-                    sectionEl.innerHTML += `<p style="color:red;">Could not load data for ${entityType}.</p>`;
+                    const errorEl = document.createElement('p');
+                    errorEl.style.color = 'red';
+                    errorEl.textContent = `Could not load data for ${entityType}.`;
+                    sectionEl.appendChild(errorEl);
                 }
             }
             showMessage('Full report loaded.');
