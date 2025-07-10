@@ -1489,11 +1489,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 let priorityDisplay = '';
                 if (req.priority) {
                     const priorityEmojis = {
-                        "Must Have": "⚠️",
+                        "Must Have": "⭐⭐️",
                         "High Priority": "⭐",
                         "Medium Priority": "⚪",
                         "Low Priority": "➖",
-                        "Cherry on the Cake": "✨"
+                        "Cherry on the Cake": "🍒"
                     };
                     priorityDisplay = priorityEmojis[req.priority] || "";
                 }
