@@ -530,11 +530,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 else if (key === 'priority' && entityType === 'requirements') {
                     const priorityOptions = [
                         { value: "", display: "-- Select Priority --" },
-                        { value: "Must Have", display: "⚠️ Must Have" },
+                        { value: "Must Have", display: "⭐⭐️ Must Have" },
                         { value: "High Priority", display: "⭐ High Priority" },
                         { value: "Medium Priority", display: "⚪ Medium Priority" },
                         { value: "Low Priority", display: "➖ Low Priority" },
-                        { value: "Cherry on the Cake", display: "✨ Cherry on the Cake" }
+                        { value: "Cherry on the Cake", display: "🍒 Cherry on the Cake" }
                     ];
                     fieldsHtml += `<select id="${fieldId}" name="${key}">`;
                     priorityOptions.forEach(opt => {
