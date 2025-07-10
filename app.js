@@ -1353,6 +1353,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            // Update tag cache based on all requirements
+            const tagCounts = new Map();
+            requirements.forEach(item => {
+                if (item.tags && Array.isArray(item.tags)) {
+                    item.tags.forEach(tag => {
+                        const trimmedTag = String(tag).trim();
+                        if (trimmedTag) {
+                            tagCounts.set(trimmedTag, (tagCounts.get(trimmedTag) || 0) + 1);
+                        }
+                    });
+                }
+            });
+            cachedSortedUniqueTags = Array.from(tagCounts.entries())
+                .map(([tag, count]) => ({ tag, count }))
+                .sort((a, b) => a.tag.localeCompare(b.tag));
+
+            // Filter requirements based on the active tag filter
+            let displayRequirements = [...requirements];
+            if (activeTagFilter) {
+                displayRequirements = displayRequirements.filter(
+                    item => item.tags && Array.isArray(item.tags) && item.tags.some(t => String(t).trim() === activeTagFilter)
+                );
+            }
+
             // --- Sorting Logic ---
             const priorityOrder = {
                 "Must Have": 1,
@@ -1368,7 +1392,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 "": 4 // Not Assessed
             };
 
-            requirements.sort((a, b) => {
+            displayRequirements.sort((a, b) => {
                 let valA, valB;
 
                 switch (matrixSortKey) {
@@ -1404,6 +1428,37 @@ document.addEventListener('DOMContentLoaded', () => {
             // --- End Sorting Logic ---
 
             let html = '<h2>Solution Assessment Matrix</h2>';
+
+            // --- Add Tag Cloud for Filtering ---
+            const sortedUniqueTagsWithCounts = cachedSortedUniqueTags || [];
+            let tagCloudHtml = '<div class="tag-list-container"><strong>Tag filter(s):</strong> ';
+
+            if (sortedUniqueTagsWithCounts.length > 0) {
+                sortedUniqueTagsWithCounts.forEach(tagObj => {
+                    const tag = tagObj.tag;
+                    const count = tagObj.count;
+                    const isActive = tag === activeTagFilter;
+                    const escapedTag = escapeHTML(tag);
+                    tagCloudHtml += `<button class="tag-button ${isActive ? 'active' : ''}" onclick="app.applyTagFilter('${escapedTag}')">${escapedTag} (${count})</button> `;
+                });
+                if (activeTagFilter) {
+                    tagCloudHtml += `<button class="tag-button clear-filter" onclick="app.clearTagFilter()">Clear Filter (Show All)</button>`;
+                }
+            } else {
+                tagCloudHtml += '<span>No tags defined across requirements.</span>';
+            }
+            tagCloudHtml += '</div>';
+            html += tagCloudHtml;
+            // --- End Tag Cloud ---
+
+            // Handle case where no requirements match the filter
+            if (displayRequirements.length === 0) {
+                html += '<p>No requirements match the current filter.</p>';
+                contentArea.innerHTML = html;
+                showMessage('');
+                return;
+            }
+
             html += '<table class="assessment-matrix"><thead><tr>'; // Added class for styling
 
             const getSortIndicator = (key) => {
@@ -1421,7 +1476,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             html += '</tr></thead><tbody>';
 
-            requirements.forEach(req => {
+            displayRequirements.forEach(req => {
                 // Use requirement name if available, otherwise fallback to ID.
                 const reqDisplayName = req.name ? escapeHTML(req.name) : `<em>${escapeHTML(req.id)} (No Name)</em>`;
                 // NEW: Make the requirement title a link to its edit form
