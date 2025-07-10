@@ -239,11 +239,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     let priorityDisplay = escapeHTML(item.priority);
                     if (item.priority) {
                         const priorityEmojis = {
-                            "Must Have": "⚠️",
+                            "Must Have": "⭐⭐",
                             "High Priority": "⭐",
                             "Medium Priority": "⚪",
                             "Low Priority": "➖",
-                            "Cherry on the Cake": "✨"
+                            "Cherry on the Cake": "🍒"
                         };
                         const emoji = priorityEmojis[item.priority] || "";
                         priorityDisplay = `${emoji} ${escapeHTML(item.priority)}`;
@@ -317,23 +317,27 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
 
                     // --- NEW: Display Solution Assessments in Card ---
-                    // if (item.solution_assessments && Array.isArray(item.solution_assessments) && item.solution_assessments.length > 0) {
-                    //     html += `<div class="card-solution-assessments"><h4>Solution Assessments:</h4>`;
-                    //     item.solution_assessments.forEach(assessment => {
-                    //         const solution = currentDataCache['solutions']?.find(s => s.id === assessment.solution_id);
-                    //         const solutionName = solution ? escapeHTML(solution.name) : `ID: ${escapeHTML(assessment.solution_id)}`;
-                    //         const assessmentOption = ASSESSMENT_OPTIONS.find(opt => opt.value === assessment.result);
-                    //         const emoji = assessmentOption ? assessmentOption.emoji : '❓';
+                    if (item.solution_assessments && Array.isArray(item.solution_assessments) && item.solution_assessments.length > 0) {
+                        html += `<div class="card-solution-assessments"><h4>Solution Assessments:</h4>`;
+                        item.solution_assessments.forEach(assessment => {
+                            const solution = currentDataCache['solutions']?.find(s => s.id === assessment.solution_id);
+                            const solutionName = solution ? escapeHTML(solution.name) : `ID: ${escapeHTML(assessment.solution_id)}`;
+                            const assessmentOption = ASSESSMENT_OPTIONS.find(opt => opt.value === assessment.result);
+                            const emoji = assessmentOption ? assessmentOption.emoji : '❓';
                             
-                    //         html += `<div class="assessment-entry" style="margin-bottom: 5px; padding-left: 10px; border-left: 2px solid #eee;">`;
-                    //         html += `<p><strong>${solutionName}:</strong> ${emoji} ${escapeHTML(assessmentOption?.display || assessment.result)}</p>`;
-                    //         if (assessment.description) {
-                    //             html += `<p style="font-size: 0.9em; margin-left: 15px;"><em>${escapeHTML(assessment.description).replace(/\n/g, '<br>')}</em></p>`;
-                    //         }
-                    //         html += `</div>`;
-                    //     });
-                    //     html += `</div>`; // end card-solution-assessments
-                    // }
+                            html += `<div class="assessment-entry" style="margin-bottom: 5px; padding-left: 10px; border-left: 2px solid #eee;">`;
+                            html += `<p><strong>${solutionName}:</strong> ${emoji} ${escapeHTML(assessmentOption?.display || assessment.result)}</p>`;
+                            if (assessment.description) {
+                                var markdown = new showdown.Converter();
+                                markdown.setFlavor('github');
+                                const escapedDescription = escapeHTML(assessment.description);
+                                html += `<div style="background-color: white">${markdown.makeHtml(escapedDescription).replace(/\n/g, '<br>')}</div>`;
+                                //html += `<p style="font-size: 0.9em; margin-left: 15px;"><em>${escapeHTML(assessment.description).replace(/\n/g, '<br>')}</em></p>`;
+                            }
+                            html += `</div>`;
+                        });
+                        html += `</div>`; // end card-solution-assessments
+                    }
                     // --- End of Display Solution Assessments ---
 
                     // Card Actions
